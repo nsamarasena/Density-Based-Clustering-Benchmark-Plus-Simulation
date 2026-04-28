@@ -1,1 +1,1 @@
-# Density-Based-Clustering-Benchmarking-Plus-Simulation
+# Density-Based-Clustering-Benchmark-Plus-Simulation
