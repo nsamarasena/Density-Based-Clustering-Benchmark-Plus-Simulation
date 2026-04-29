@@ -1,0 +1,388 @@
+---
+title: "captcha"
+output: html_document
+date: "2026-04-28"
+---
+
+```{r setup, include=FALSE}
+library(magick)
+library(ggplot2)
+```
+
+
+
+```{r pressure}
+randtext <- function(n = sample(5:7, 1)) {
+  paste(sample(c(letters, LETTERS), n, replace = TRUE), collapse = "")
+}
+
+makecaptcha <- function(
+  text = randtext(),
+  width = 200,
+  height = 80,
+  pointsize = sample(32:38, 1),
+  overlap = FALSE,
+  distort = FALSE,
+  nlines = sample(0:2, 1),
+  ndots = sample(15:35, 1)
+) {
+  chars <- strsplit(text, "")[[1]]
+  n <- length(chars)
+
+  img <- magick::image_blank(width = width, height = height, color = "white")
+
+  basey <- sample(round(height * 0.54):round(height * 0.66), 1)
+  estcharw <- pointsize * 0.95 #SPACING
+
+  if (overlap) {
+    steps <- sample(
+      seq(round(estcharw * 0.55), round(estcharw * 0.80)),
+      n - 1,
+      replace = TRUE
+    )
+  } else {
+    steps <- sample(
+      seq(round(estcharw * 1.15), round(estcharw * 1.35)),
+      n - 1,
+      replace = TRUE
+    )
+  }
+
+  xpos <- numeric(n)
+  xpos[1] <- sample(10:18, 1)
+
+  if (n > 1) {
+    for (j in 2:n) {
+      xpos[j] <- xpos[j - 1] + steps[j - 1]
+    }
+  }
+
+  rightedge <- max(xpos) + estcharw + 15
+  if (rightedge > width) {
+    shift <- rightedge - width
+    xpos <- pmax(3, xpos - shift)
+  }
+
+  ypos <- basey + sample(-4:4, n, replace = TRUE)
+  rot <- sample(-12:12, n, replace = TRUE)
+
+  for (j in seq_len(n)) {
+    charimg <- magick::image_blank(width = 70, height = 70, color = "none") |>
+      magick::image_annotate(
+        text = chars[j],
+        size = pointsize + sample(-1:1, 1),
+        color = sprintf("gray(%d%%)", sample(8:20, 1)),
+        gravity = "center"
+      ) |>
+      magick::image_rotate(rot[j])
+
+    img <- magick::image_composite(
+      img,
+      charimg,
+      offset = paste0("+", round(xpos[j]), "+", round(ypos[j] - 35))
+    )
+  }
+
+  if (nlines > 0) {
+    for (j in seq_len(nlines)) {
+      x1 <- sample(0:width, 1)
+      y1 <- sample(0:height, 1)
+      x2 <- sample(0:width, 1)
+      y2 <- sample(0:height, 1)
+
+      img <- magick::image_draw(img)
+      segments(
+        x0 = x1,
+        y0 = height - y1,
+        x1 = x2,
+        y1 = height - y2,
+        col = gray(runif(1, 0.65, 0.80)),
+        lwd = 1
+      )
+      dev.off()
+    }
+  }
+
+  if (ndots > 0) {
+    for (j in seq_len(ndots)) {
+      x <- runif(1, 0, width)
+      y <- runif(1, 0, height)
+
+      img <- magick::image_draw(img)
+      points(
+        x = x,
+        y = height - y,
+        pch = 16,
+        cex = runif(1, 0.10, 0.22),
+        col = gray(runif(1, 0.70, 0.90))
+      )
+      dev.off()
+    }
+  }
+
+  disttype <- "none"
+
+  if (distort) {
+    disttype <- sample(
+      c("none", "shear", "rotate", "implode", "combo"),
+      1,
+      prob = c(0.20, 0.30, 0.25, 0.10, 0.15)
+    )
+
+    if (disttype == "shear") {
+      img <- magick::image_shear(
+        img,
+        geometry = sprintf("%dx%d", sample(-5:5, 1), sample(-2:2, 1))
+      )
+    } else if (disttype == "rotate") {
+      img <- magick::image_rotate(img, runif(1, -8, 8))
+    } else if (disttype == "implode") {
+      img <- magick::image_implode(img, factor = runif(1, -0.08, 0.08))
+    } else if (disttype == "combo") {
+      img <- img |>
+        magick::image_shear(
+          geometry = sprintf("%dx%d", sample(-4:4, 1), sample(-2:2, 1))
+        ) |>
+        magick::image_rotate(runif(1, -6, 6)) |>
+        magick::image_implode(factor = runif(1, -0.06, 0.06))
+    }
+  }
+
+  img <- img |>
+    magick::image_background("white", flatten = TRUE) |>
+    magick::image_extent(
+      geometry = sprintf("%dx%d", width, height),
+      gravity = "center",
+      color = "white"
+    )
+
+  list(
+    img = img,
+    text = text
+  )
+}
+
+imgtopoints <- function(
+  img,
+  cutoff = 0.82,
+  border = 2,
+  fuzzband = c(0.70, 0.85),
+  fuzzprob = 0.18
+) {
+  g <- magick::image_convert(img, colorspace = "gray")
+  a <- magick::image_data(g, channels = "gray")
+
+  m <- matrix(
+    as.integer(a[1, , ]),
+    nrow = dim(a)[2],
+    ncol = dim(a)[3]
+  ) / 255
+
+  keep <- m < cutoff
+
+  if (!is.null(border) && border > 0) {
+    keep[1:border, ] <- FALSE
+    keep[(nrow(keep) - border + 1):nrow(keep), ] <- FALSE
+    keep[, 1:border] <- FALSE
+    keep[, (ncol(keep) - border + 1):ncol(keep)] <- FALSE
+  }
+
+  if (!is.null(fuzzband)) {
+    near <- m >= fuzzband[1] & m < fuzzband[2]
+
+    if (!is.null(border) && border > 0) {
+      near[1:border, ] <- FALSE
+      near[(nrow(near) - border + 1):nrow(near)] <- FALSE
+      near[, 1:border] <- FALSE
+      near[, (ncol(near) - border + 1):ncol(near)] <- FALSE
+    }
+
+    keep <- keep | (
+      near &
+      (matrix(runif(length(m)), nrow(m), ncol(m)) < fuzzprob)
+    )
+  }
+
+  idx <- which(keep, arr.ind = TRUE)
+
+  data.frame(
+    x = idx[, 2],
+    y = idx[, 1]
+  )
+}
+
+thinpoints <- function(pts, keepfrac = 0.5) {
+  keep <- runif(nrow(pts)) < keepfrac
+  pts[keep, , drop = FALSE]
+}
+
+croppoints <- function(pts, pad = 2) {
+  xmin <- min(pts$x) - pad
+  xmax <- max(pts$x) + pad
+  ymin <- min(pts$y) - pad
+  ymax <- max(pts$y) + pad
+
+  out <- subset(
+    pts,
+    x >= xmin & x <= xmax & y >= ymin & y <= ymax
+  )
+
+  out$x <- out$x - min(out$x)
+  out$y <- out$y - min(out$y)
+
+  out
+}
+
+addpointnoise <- function(
+  pts,
+  nbg = 150,
+  jitter = 0.35,
+  dropprob = 0.02,
+  xypad = 3
+) {
+  pts$x <- pts$x + rnorm(nrow(pts), 0, jitter)
+  pts$y <- pts$y + rnorm(nrow(pts), 0, jitter)
+
+  if (dropprob > 0) {
+    keep <- runif(nrow(pts)) > dropprob
+    pts <- pts[keep, , drop = FALSE]
+  }
+
+  xr <- range(pts$x)
+  yr <- range(pts$y)
+
+  noise <- data.frame(
+    x = runif(nbg, xr[1] - xypad, xr[2] + xypad),
+    y = runif(nbg, yr[1] - xypad, yr[2] + xypad),
+    label = "noise"
+  )
+
+  pts$label <- "signal"
+
+  rbind(pts, noise)
+}
+
+makepointcaptcha <- function(
+  text = randtext(),
+  cutoff = 0.82,
+  fuzzprob = 0.20,
+  nbg = 180,
+  jitter = 0.10
+) {
+  z <- makecaptcha(
+    text = text,
+    distort = TRUE,
+    overlap = TRUE,
+    ndots = 0
+  )
+
+  pts <- imgtopoints(
+    z$img,
+    cutoff = cutoff,
+    fuzzband = c(0.70, 0.86),
+    fuzzprob = fuzzprob,
+    border = 2
+  ) |>
+    croppoints(pad = 1) |>
+    thinpoints(keepfrac = 0.8) |> #THIS IS HOW SPARSE THE CLOUD IS
+    addpointnoise(
+      nbg = nbg,
+      jitter = jitter,
+      dropprob = 0,
+      xypad = 2
+    )
+
+  list(
+    text = z$text,
+    pts = pts
+  )
+}
+```
+
+```{r generate}
+z <- makepointcaptcha(text="Shaam")
+oldx <- z$pts$x
+oldy <- z$pts$y
+z$pts$x <- -oldy
+z$pts$y <- oldx
+z$pts$x <- z$pts$x - min(z$pts$x)
+z$pts$y <- z$pts$y - min(z$pts$y)
+z$pts$x <- max(z$pts$x) - z$pts$x
+
+z$text
+
+ggplot(z$pts, aes(x, -y)) +
+  geom_point(size = 0.6) +
+  coord_equal() +
+  theme_void()
+```
+
+
+```{r savegoodfn}
+savegoodz <- function(z, path = "goodzs.rds") {
+  if (file.exists(path)) {
+    db <- readRDS(path)
+  } else {
+    db <- list()
+  }
+
+  id <- paste0("z", length(db) + 1)
+  db[[id]] <- z
+
+  saveRDS(db, path)
+
+  message("Saved as ", id, " in ", path)
+  invisible(id)
+}
+```
+
+```{r SAVE}
+savegoodz(z)
+
+```
+
+```{r accesssaved}
+goodzs <- readRDS("goodzs.rds")
+names(goodzs)
+goodzs$z6
+```
+
+```{r visualize}
+
+library(dbscan)
+library(ggplot2)
+
+goodzs <- readRDS("goodzs.rds")
+
+pts <- goodzs$z14$pts
+
+db <- dbscan(pts[, c("x", "y")], eps = 0.2, minPts = 5)
+
+pts$cluster <- factor(db$cluster)
+
+ggplot(pts, aes(x, -y, color = cluster)) +
+  geom_point(size = 0.7) +
+  coord_equal() +
+  theme_void() +
+  guides(color = "none")
+
+
+```
+
+
+```{r hdbscan}
+goodzs <- readRDS("goodzs.rds")
+
+pts <- goodzs$z14$pts
+hdb <- hdbscan(as.matrix(pts[, c("x", "y")]), minPts = 6)
+pts$cluster <- factor(hdb$cluster)
+
+library(viridis)
+
+ggplot(pts, aes(x, -y, color = cluster)) +
+  geom_point(size = 0.7) +
+  scale_color_viridis_d(option = "turbo") +
+  coord_equal() +
+  theme_void() +
+  guides(color = "none")
+```
