@@ -1,0 +1,102 @@
+---
+title: "datasim"
+output: html_document
+---
+
+```{r}
+library(mvtnorm) # for simulating convex data
+library(scatterplot3d) # for 3d visualization
+```
+
+# Convex data with consistent cluster size
+
+```{r}
+# convex data with two non-overlapping clusters and consistent cluster size
+
+# generate two clusters that are convex, non-overlapping
+sig1_1 <- diag(3)
+sig1_2 <- diag(6.25,3)
+x1_1 <- rmvnorm(50,c(0,0,0),sig1_1)
+x1_2 <- rmvnorm(50,c(13,-9,9),sig1_2)
+
+X <- rbind(x1_1,x1_2)
+           
+trueX <- rep(1:2,each=50) # generate labels for data
+
+scatterplot3d(X,color=trueX,pch=19)
+```
+
+```{r}
+# convex data with two overlapping clusters and consistent cluster size
+
+# generate two 3d clusters that are convex, overlapping
+sig2_1 <- diag(6,3)
+sig2_2 <- diag(0.75,3)
+x2_1 <- rmvnorm(50,c(-9,9,9),sig2_1)
+x2_2 <- rmvnorm(50,c(-10,11,11),sig2_2)
+
+X2 <- rbind(x2_1,x2_2)
+
+trueX2 <- rep(3:4,each=50)
+
+scatterplot3d(X2,color=trueX2,pch=19)
+```
+
+# Non-convex data with consistent cluster size
+
+```{r}
+# non-convex data in the shape of a triple helix with three non-overlapping 
+# clusters and consistent cluster size
+
+t <- seq(-1,8*pi,length.out=200) * rnorm(200,mean=1,sd=0.04)
+
+# cluster 1
+x3_1 <- cos(t)
+x3_2 <- sin(t)
+x3_3 <- t * rnorm(200,mean=1,sd=0.01)
+
+# cluster 2
+x3_4 <- cos(t+ 2*pi/3)
+x3_5 <- sin(t+ 2*pi/3)
+x3_6 <- t * rnorm(200,mean=1,sd=0.01)
+
+# cluster 3
+x3_7 <- cos(t+ 4*pi/3)
+x3_8 <- sin(t+ 4*pi/3)
+x3_9 <- t * rnorm(200,mean=1,sd=0.01)
+
+X3_1 <- cbind(x3_1,x3_2,x3_3)
+X3_2 <- cbind(x3_4,x3_5,x3_6)
+X3_3 <- cbind(x3_7,x3_8,x3_9)
+
+X3 <- rbind(X3_1,X3_2,X3_3)
+
+trueX3 <- rep(5:7,each=200)
+
+scatterplot3d(X3,color=trueX3,pch=19)
+```
+
+```{r}
+# non-convex data of a saddle and spring forming two overlapping clusters
+
+# simulate data in shape of saddle, cluster 1
+x4_1 <- runif(500,-3,3)
+x4_2 <- runif(500,-3,3)
+x4_3 <- x4_1^2 - x4_2^2
+
+# simulate data in helix shape, cluster 2
+t <- seq(-10,2*pi,length.out=500) * rnorm(500,mean=1,sd=0.04)
+
+x4_4 <- cos(t)
+x4_5 <- sin(t)
+x4_6 <- t * rnorm(500,mean=1,sd=0.01)
+
+X4_1 <- cbind(x4_1,x4_2,x4_3)
+X4_2 <- cbind(x4_4,x4_5,x4_6)
+
+X4 <- rbind(X4_1, X4_2)
+
+trueX4 <- rep(c('purple','yellow'),each=500)
+
+scatterplot3d(X4,pch=19,color=trueX4)
+```
