@@ -1,0 +1,64 @@
+---
+title: "Density Based Clustering Benchmark Plus Simulation"
+subtitle: "\\Cluster Analysis Final Report"
+author: |
+  | Josh Heytler, SJSU MS Statistics
+  | Callie (Khoa) Nguyen, SJSU MS Statistics
+  | Nathan Samarasena, SJSU MS Statistics
+  | Dr. Cristina Tortora, Professor of Statistics SJSU
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+# bibliography: references.bib
+# csl: ieee.csl
+output: 
+  pdf_document:
+    extra_dependencies: ["float"]
+    toc: true
+    toc_depth: 2
+    number_sections: true
+fig_caption: true
+classoption: titlepage
+header-includes:
+  - \usepackage{fancyhdr}
+  - \usepackage{hyperref}
+  - \pagestyle{fancy}
+  - \fancyhead{}
+  - \fancyfoot{}
+  - \fancyfoot[C]{\thepage}
+  - \fancyfoot[R]{\footnotesize\hyperlink{toc}{Table of Contents}}
+  - \renewcommand{\headrulewidth}{0pt}
+  - \renewcommand{\footrulewidth}{0.4pt}
+  - \usepackage{amsmath}
+  - \usepackage{bm}
+  - \usepackage{tabularx}
+  - \usepackage[table]{xcolor}
+  - \usepackage{array}
+  - \renewcommand{\tabularxcolumn}[1]{m{#1}} 
+  - \newcolumntype{Y}{>{\centering\arraybackslash}X}
+  - \setcounter{secnumdepth}{5}
+  - \usepackage{caption}
+  - \captionsetup{
+      font=small,
+      labelfont=bf,
+      labelsep=colon,
+      justification=centering
+    }
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+# r packages used in project
+
+# --- Global Settings ---
+knitr::opts_chunk$set(echo = FALSE, # Hide all code
+                      message = FALSE, # r code messages will not print in the pdf
+                      warning = FALSE, # warnings will not print in the pdf
+                      fig.width = 5.5, # All figures default to 5 inches wide
+                      fig.height = 3, # All figures default to 3 inches high
+                      fig.align = 'center', # Add this to center all figures
+                      dpi = 300)
+# can override figure options in individual chunks
+```
+
+
