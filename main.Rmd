@@ -51,13 +51,15 @@ editor_options:
 # r packages used in project
 
 # --- Global Settings ---
-knitr::opts_chunk$set(echo = FALSE, # Hide all code
-                      message = FALSE, # r code messages will not print in the pdf
-                      warning = FALSE, # warnings will not print in the pdf
-                      fig.width = 5.5, # All figures default to 5 inches wide
-                      fig.height = 3, # All figures default to 3 inches high
-                      fig.align = 'center', # Add this to center all figures
-                      dpi = 300)
+knitr::opts_chunk$set(
+	echo = FALSE,
+	fig.align = "center",
+	fig.height = 3,
+	fig.width = 5.5,
+	message = FALSE,
+	warning = FALSE,
+	dpi = 300
+)
 # can override figure options in individual chunks
 ```
 
