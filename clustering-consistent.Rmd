@@ -221,7 +221,7 @@ scatterplot3d(X4, color=db$cluster +1, pch=19)
 ```
 
 ```{r HDBSCAN 4}
-hdb <- hdbscan(X4, minPts = 50)
+hdb <- hdbscan(X4, minPts = 45)
 scatterplot3d(X4, color=hdb$cluster +1, pch=19)
 ```
 ```{r ARI 4}

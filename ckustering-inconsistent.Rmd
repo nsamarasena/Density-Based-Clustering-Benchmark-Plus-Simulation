@@ -15,6 +15,11 @@ library(mlbench)
 library(dbscan)
 
 set.seed(865)
+
+sig1_1 <- diag(3)
+sig1_2 <- diag(6.25,3)
+sig2_1 <- diag(6,3)
+sig2_2 <- diag(0.75,3)
 ```
 
 # Convex data with inconsistent cluster size
