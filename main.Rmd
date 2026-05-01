@@ -62,7 +62,3 @@ knitr::opts_chunk$set(
 )
 # can override figure options in individual chunks
 ```
-
-```{r}
-
-```

@@ -17,7 +17,7 @@ library(scatterplot3d) # for 3d visualization
 sig1_1 <- diag(3)
 sig1_2 <- diag(6.25,3)
 x1_1 <- rmvnorm(50,c(0,0,0),sig1_1)
-x1_2 <- rmvnorm(50,c(5,-5,5),sig1_2)
+x1_2 <- rmvnorm(50,c(8,8,8),sig1_2)
 
 X <- rbind(x1_1,x1_2)
            
@@ -117,7 +117,7 @@ scatterplot3d(X4,pch=19,color=trueX4)
 
 # generate two clusters that are convex, non-overlapping
 x1i_1 <- rmvnorm(50,c(0,0,0),sig1_1) # cluster 1, n=50
-x1i_2 <- rmvnorm(10,c(4,-4,4),sig1_2) # cluster 2, n=10
+x1i_2 <- rmvnorm(10,c(8,8,8),sig1_2) # cluster 2, n=10
 
 Xi <- rbind(x1i_1,x1i_2)
            
@@ -131,7 +131,7 @@ scatterplot3d(Xi,color=trueXi,pch=19)
 
 # generate two clusters that are convex, non-overlapping (sizes flipped)
 x1i2_1 <- rmvnorm(10,c(0,0,0),sig1_1) # cluster 1, n=10
-x1i2_2 <- rmvnorm(50,c(4,-4,4),sig1_2) # cluster 2, n=50
+x1i2_2 <- rmvnorm(50,c(8,8,8),sig1_2) # cluster 2, n=50
 
 Xi2 <- rbind(x1i2_1,x1i2_2)
            
