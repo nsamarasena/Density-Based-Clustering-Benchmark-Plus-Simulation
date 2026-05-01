@@ -1,6 +1,6 @@
 ---
 title: "Density Based Clustering Benchmark Plus Simulation"
-subtitle: "\\Cluster Analysis Final Report"
+subtitle: "\\LARGE Cluster Analysis Final Report"
 author: |
   | Josh Heytler, SJSU MS Statistics
   | Callie (Khoa) Nguyen, SJSU MS Statistics
@@ -61,4 +61,6 @@ knitr::opts_chunk$set(echo = FALSE, # Hide all code
 # can override figure options in individual chunks
 ```
 
+```{r}
 
+```

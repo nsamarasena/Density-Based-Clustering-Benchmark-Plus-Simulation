@@ -154,7 +154,6 @@ trueX2i <- c(rep(3,50),rep(4,10))
 scatterplot3d(X2i,color=trueX2i,pch=19)
 ```
 
-
 ```{r}
 # convex data with two overlapping clusters and inconsistent cluster size
 
@@ -168,7 +167,6 @@ trueX2i2 <- c(rep(3,10),rep(4,50))
 
 scatterplot3d(X2i2,color=trueX2i2,pch=19)
 ```
-
 
 # Non-convex data with inconsistent cluster size
 
