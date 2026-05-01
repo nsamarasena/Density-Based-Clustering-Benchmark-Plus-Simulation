@@ -16,12 +16,12 @@ library(scatterplot3d) # for 3d visualization
 # generate two clusters that are convex, non-overlapping
 sig1_1 <- diag(3)
 sig1_2 <- diag(6.25,3)
-x1_1 <- rmvnorm(50,c(0,0,0),sig1_1)
-x1_2 <- rmvnorm(50,c(8,8,8),sig1_2)
+x1_1 <- rmvnorm(100,c(0,0,0),sig1_1)
+x1_2 <- rmvnorm(100,c(8,8,8),sig1_2)
 
 X <- rbind(x1_1,x1_2)
            
-trueX <- rep(1:2,each=50) # generate labels for data
+trueX <- rep(1:2,each=100) # generate labels for data
 
 scatterplot3d(X,color=trueX,pch=19)
 ```
@@ -32,12 +32,12 @@ scatterplot3d(X,color=trueX,pch=19)
 # generate two 3d clusters that are convex, overlapping
 sig2_1 <- diag(6,3)
 sig2_2 <- diag(0.75,3)
-x2_1 <- rmvnorm(50,c(-9,9,9),sig2_1)
-x2_2 <- rmvnorm(50,c(-10,11,11),sig2_2)
+x2_1 <- rmvnorm(100,c(-9,9,9),sig2_1)
+x2_2 <- rmvnorm(100,c(-10,11,11),sig2_2)
 
 X2 <- rbind(x2_1,x2_2)
 
-trueX2 <- rep(3:4,each=50)
+trueX2 <- rep(3:4,each=100)
 
 scatterplot3d(X2,color=trueX2,pch=19)
 ```
@@ -108,12 +108,12 @@ scatterplot3d(X4,pch=19,color=trueX4)
 # convex data with two non-overlapping clusters and inconsistent cluster size
 
 # generate two clusters that are convex, non-overlapping
-x1i_1 <- rmvnorm(50,c(0,0,0),sig1_1) # cluster 1, n=50
-x1i_2 <- rmvnorm(20,c(8,8,8),sig1_2) # cluster 2, n=10
+x1i_1 <- rmvnorm(150,c(0,0,0),sig1_1) # cluster 1, n=150
+x1i_2 <- rmvnorm(60,c(8,8,8),sig1_2) # cluster 2, n=60
 
 Xi <- rbind(x1i_1,x1i_2)
            
-trueXi <- c(rep(1,50),rep(2,20)) # generate labels for data
+trueXi <- c(rep(1,150),rep(2,60)) # generate labels for data
 
 scatterplot3d(Xi,color=trueXi,pch=19)
 ```
@@ -122,12 +122,12 @@ scatterplot3d(Xi,color=trueXi,pch=19)
 # convex data with two non-overlapping clusters and inconsistent cluster size
 
 # generate two clusters that are convex, non-overlapping (sizes flipped)
-x1i2_1 <- rmvnorm(20,c(0,0,0),sig1_1) # cluster 1, n=10
-x1i2_2 <- rmvnorm(50,c(8,8,8),sig1_2) # cluster 2, n=50
+x1i2_1 <- rmvnorm(60,c(0,0,0),sig1_1) # cluster 1, n=60
+x1i2_2 <- rmvnorm(150,c(8,8,8),sig1_2) # cluster 2, n=150
 
 Xi2 <- rbind(x1i2_1,x1i2_2)
            
-trueXi2 <- c(rep(1,20),rep(2,50)) # generate labels for data
+trueXi2 <- c(rep(1,60),rep(2,150)) # generate labels for data
 
 scatterplot3d(Xi2,color=trueXi2,pch=19)
 ```
@@ -136,12 +136,12 @@ scatterplot3d(Xi2,color=trueXi2,pch=19)
 # convex data with two overlapping clusters and inconsistent cluster size
 
 # generate two 3d clusters that are convex, overlapping
-x2i_1 <- rmvnorm(50,c(-8,8,8),sig2_1) # cluster 1, n=50
-x2i_2 <- rmvnorm(20,c(-10,11,11),sig2_2) # cluster 2, n=10
+x2i_1 <- rmvnorm(150,c(-8,8,8),sig2_1) # cluster 1, n=150
+x2i_2 <- rmvnorm(60,c(-10,11,11),sig2_2) # cluster 2, n=60
 
 X2i <- rbind(x2i_1,x2i_2)
 
-trueX2i <- c(rep(3,50),rep(4,20))
+trueX2i <- c(rep(3,150),rep(4,60))
 
 scatterplot3d(X2i,color=trueX2i,pch=19)
 ```
@@ -150,12 +150,12 @@ scatterplot3d(X2i,color=trueX2i,pch=19)
 # convex data with two overlapping clusters and inconsistent cluster size
 
 # generate two 3d clusters that are convex, overlapping (sizes flipped)
-x2i2_1 <- rmvnorm(20,c(-8,8,8),sig2_1) # cluster 1, n=10
-x2i2_2 <- rmvnorm(50,c(-10,11,11),sig2_2) # cluster 2, n=50
+x2i2_1 <- rmvnorm(60,c(-8,8,8),sig2_1) # cluster 1, n=60
+x2i2_2 <- rmvnorm(150,c(-10,11,11),sig2_2) # cluster 2, n=150
 
 X2i2 <- rbind(x2i2_1,x2i2_2)
 
-trueX2i2 <- c(rep(3,20),rep(4,50))
+trueX2i2 <- c(rep(3,60),rep(4,150))
 
 scatterplot3d(X2i2,color=trueX2i2,pch=19)
 ```
@@ -166,24 +166,26 @@ scatterplot3d(X2i2,color=trueX2i2,pch=19)
 # non-convex data in the shape of a triple helix with three non-overlapping 
 # clusters and inconsistent cluster size
 
-t1i <- seq(-1,8*pi,length.out=200) * rnorm(200,mean=1,sd=0.04)
-t2i <- seq(-1,8*pi,length.out=100) * rnorm(100,mean=1,sd=0.04)
-t3i <- seq(-1,8*pi,length.out=50) * rnorm(50,mean=1,sd=0.04)
+# cluster 1, n=500
+t1i <- seq(-1,8*pi,length.out=500) * rnorm(500,mean=1,sd=0.04)
 
-# cluster 1, n=200
 x3i_1 <- cos(t1i)
 x3i_2 <- sin(t1i)
-x3i_3 <- t1i * rnorm(200,mean=1,sd=0.01)
+x3i_3 <- t1i * rnorm(500,mean=1,sd=0.01)
 
-# cluster 2, n=100
+# cluster 2, n=200
+t2i <- seq(-1,8*pi,length.out=200) * rnorm(200,mean=1,sd=0.04)
+
 x3i_4 <- cos(t2i+ 2*pi/3)
 x3i_5 <- sin(t2i+ 2*pi/3)
-x3i_6 <- t2i * rnorm(100,mean=1,sd=0.01)
+x3i_6 <- t2i * rnorm(200,mean=1,sd=0.01)
 
-# cluster 3, n=50
+# cluster 3, n=100
+t3i <- seq(-1,8*pi,length.out=100) * rnorm(100,mean=1,sd=0.04)
+
 x3i_7 <- cos(t3i+ 4*pi/3)
 x3i_8 <- sin(t3i+ 4*pi/3)
-x3i_9 <- t3i * rnorm(50,mean=1,sd=0.01)
+x3i_9 <- t3i * rnorm(100,mean=1,sd=0.01)
 
 X3i_1 <- cbind(x3i_1,x3i_2,x3i_3)
 X3i_2 <- cbind(x3i_4,x3i_5,x3i_6)
@@ -191,7 +193,7 @@ X3i_3 <- cbind(x3i_7,x3i_8,x3i_9)
 
 X3i <- rbind(X3i_1,X3i_2,X3i_3)
 
-trueX3i <- c(rep(5,200),rep(6,100),rep(7,50))
+trueX3i <- c(rep(5,500),rep(6,200),rep(7,100))
 
 scatterplot3d(X3i,color=trueX3i,pch=19)
 ```
