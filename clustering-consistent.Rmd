@@ -1,6 +1,5 @@
 ---
 title: "clustering - Consistent Cluster Size"
-author: "Callie Nguyen"
 date: "2026-04-30"
 output: pdf_document
 ---
@@ -15,6 +14,8 @@ library(MixGHD)
 library(kernlab)
 library(mlbench)
 library(dbscan)
+
+set.seed(865)
 ```
 
 # Convex data with consistent cluster size
@@ -34,33 +35,33 @@ trueX <- rep(1:2,each=50) # generate labels for data
 
 scatterplot3d(X,color=trueX,pch=19)
 ```
-```{r Single Linkage}
+```{r Single Linkage 1}
 single = agnes(X, method = 'single')
 plot(single)
 scatterplot3d(X,color=cutree(single, 3),pch=19)
 ```
-```{r k-means}
+```{r k-means 1}
 
 km <- kmeans(x=X,centers=2)
 scatterplot3d(X, color=km$cluster, pch=19)
 ```
 
-```{r Spectral}
+```{r Spectral 1}
 spectral <- specc(X, centers = 2)
 scatterplot3d(X, color=spectral, pch=19)
 ```
 
-```{r DBSCAN}
+```{r DBSCAN 1}
 db <- dbscan(X, eps=2, minPts = 15)
 scatterplot3d(X, color=db$cluster +1, pch=19)
 ```
 
-```{r HDBSCAN}
-hdb <- hdbscan(X, minPts = 15)
+```{r HDBSCAN 1}
+hdb <- hdbscan(X, minPts = 10)
 scatterplot3d(X, color=hdb$cluster +1, pch=19)
 ```
 
-```{r ARI}
+```{r ARI 1}
 print("Single Linkage:")
 ARI(trueX, cutree(single, 3))
 print("K-means:")
@@ -88,32 +89,32 @@ trueX2 <- rep(3:4,each=50)
 
 scatterplot3d(X2,color=trueX2,pch=19)
 ```
-```{r Single}
+```{r Single 2}
 single = agnes(X2, method = 'single')
 plot(single)
 scatterplot3d(X2,color=cutree(single, 2),pch=19)
 ```
 
-```{r k-means}
+```{r k-means 2}
 km <- kmeans(x=X2,centers=2)
 scatterplot3d(X2, color=km$cluster, pch=19)
 ```
 
-```{r Spectral}
+```{r Spectral 2}
 spectral <- specc(X2, centers = 2)
 scatterplot3d(X2, color=spectral, pch=19)
 ```
 
-```{r DBSCAN}
+```{r DBSCAN 2}
 db <- dbscan(X2, eps=2, minPts = 35)
 scatterplot3d(X2, color=db$cluster +1, pch=19)
 ```
 
-```{r HDBSCAN}
+```{r HDBSCAN 2}
 hdb <- hdbscan(X2, minPts = 5)
 scatterplot3d(X2, color=hdb$cluster +1, pch=19)
 ```
-```{r ARI}
+```{r ARI 2}
 print("Single Linkage:")
 ARI(trueX2, cutree(single, 3))
 print("K-means:")
@@ -160,27 +161,27 @@ trueX3 <- rep(5:7,each=200)
 scatterplot3d(X3,color=trueX3,pch=19)
 ```
 
-```{r Single}
+```{r Single 3}
 single = agnes(X3, method = 'single')
 plot(single)
 scatterplot3d(X3,color=cutree(single, 8),pch=19)
 ```
 
-```{r Spectral}
+```{r Spectral 3}
 spectral <- specc(X3, centers = 3)
 scatterplot3d(X3, color=spectral, pch=19)
 ```
 
-```{r DBSCAN}
+```{r DBSCAN 3}
 db <- dbscan(X3, eps=1.5, minPts = 30)
 scatterplot3d(X3, color=db$cluster +1, pch=19)
 ```
 
-```{r HDBSCAN}
+```{r HDBSCAN 3}
 hdb <- hdbscan(X3, minPts = 30)
 scatterplot3d(X3, color=hdb$cluster +1, pch=19)
 ```
-```{r ARI}
+```{r ARI 3}
 print("Single Linkage:")
 ARI(trueX3, cutree(single, 8))
 print("Spectral Clustering:")
@@ -223,27 +224,27 @@ trueX4 <- rep(c('purple','yellow'),each=500)
 
 scatterplot3d(X4,pch=19,color=trueX4)
 ```
-```{r Single}
+```{r Single 4}
 single = agnes(X4, method = 'single')
 plot(single)
 scatterplot3d(X4,color=cutree(single, 5),pch=19)
 ```
 
-```{r Spectral}
+```{r Spectral 4}
 spectral <- specc(X4, centers = 3)
 scatterplot3d(X4, color=spectral, pch=19)
 ```
 
-```{r DBSCAN}
+```{r DBSCAN 4}
 db <- dbscan(X4, eps=0.8, minPts = 30)
 scatterplot3d(X4, color=db$cluster +1, pch=19)
 ```
 
-```{r HDBSCAN}
+```{r HDBSCAN 4}
 hdb <- hdbscan(X4, minPts = 50)
 scatterplot3d(X4, color=hdb$cluster +1, pch=19)
 ```
-```{r ARI}
+```{r ARI 4}
 print("Single Linkage:")
 ARI(trueX4, cutree(single, 8))
 print("Spectral Clustering:")
