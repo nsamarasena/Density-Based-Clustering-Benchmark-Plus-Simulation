@@ -22,15 +22,11 @@ set.seed(865)
 ## No overlapping, 5:2 ratio
 
 ```{r}
-sig1_1 <- diag(3)
-sig1_2 <- diag(6.25,3)
-sig2_1 <- diag(6,3)
-sig2_2 <- diag(0.75,3)
 # convex data with two non-overlapping clusters and inconsistent cluster size
 
 # generate two clusters that are convex, non-overlapping
 x1i_1 <- rmvnorm(50,c(0,0,0),sig1_1) # cluster 1, n=50
-x1i_2 <- rmvnorm(20,c(4,-4,4),sig1_2) # cluster 2, n=10
+x1i_2 <- rmvnorm(20,c(8,8,8),sig1_2) # cluster 2, n=10
 
 Xi <- rbind(x1i_1,x1i_2)
            
@@ -42,7 +38,7 @@ scatterplot3d(Xi,color=trueXi,pch=19)
 ```{r Single Linkage 1}
 single = agnes(Xi, method = 'single')
 plot(single)
-scatterplot3d(Xi,color=cutree(single, 4),pch=19)
+scatterplot3d(Xi,color=cutree(single, 2),pch=19)
 ```
 
 ```{r Spectral 1}
@@ -51,7 +47,7 @@ scatterplot3d(Xi, color=spectral, pch=19)
 ```
 
 ```{r DBSCAN 1}
-db <- dbscan(Xi, eps=2, minPts = 25)
+db <- dbscan(Xi, eps=4, minPts = 5)
 scatterplot3d(Xi, color=db$cluster +1, pch=19)
 ```
 
@@ -71,20 +67,17 @@ print("HDBSCAN:")
 ARI(trueXi, hdb$cluster)
 ```
 
-## No overlapping, small volume and 3:2 ratio
-
-HDB perform poorly with small cluster sizes:
-
+## No overlapping, small volume and 2:5 ratio
 ```{r}
 # convex data with two non-overlapping clusters and inconsistent cluster size
 
-# generate two clusters that are convex, non-overlapping (smaller size)
-x1i2_1 <- rmvnorm(10,c(0,0,0),sig1_1) # cluster 1, n=10
-x1i2_2 <- rmvnorm(15,c(4,-4,4),sig1_2) # cluster 2, n=50
+# generate two clusters that are convex, non-overlapping (sizes flipped)
+x1i2_1 <- rmvnorm(20,c(0,0,0),sig1_1) # cluster 1, n=10
+x1i2_2 <- rmvnorm(50,c(8,8,8),sig1_2) # cluster 2, n=50
 
 Xi2 <- rbind(x1i2_1,x1i2_2)
            
-trueXi2 <- c(rep(1,10),rep(2,15)) # generate labels for data
+trueXi2 <- c(rep(1,20),rep(2,50)) # generate labels for data
 
 scatterplot3d(Xi2,color=trueXi2,pch=19)
 ```
@@ -92,7 +85,7 @@ scatterplot3d(Xi2,color=trueXi2,pch=19)
 ```{r Single Linkage 2}
 single = agnes(Xi2, method = 'single')
 plot(single)
-scatterplot3d(Xi2,color=cutree(single, 3),pch=19)
+scatterplot3d(Xi2,color=cutree(single, 2),pch=19)
 ```
 
 ```{r Spectral 2}
@@ -101,12 +94,12 @@ scatterplot3d(Xi2, color=spectral, pch=19)
 ```
 
 ```{r DBSCAN 2}
-db <- dbscan(Xi2, eps=2, minPts = 5)
+db <- dbscan(Xi2, eps=4, minPts = 5)
 scatterplot3d(Xi2, color=db$cluster +1, pch=19)
 ```
 
 ```{r HDBSCAN 2}
-hdb <- hdbscan(Xi2, minPts = 4)
+hdb <- hdbscan(Xi2, minPts = 5)
 scatterplot3d(Xi2, color=hdb$cluster +1, pch=19)
 ```
 
@@ -121,71 +114,22 @@ print("HDBSCAN:")
 ARI(trueXi2, hdb$cluster)
 ```
 
-##No overlapping, 5:1 ratio
-
-Both HDB and DB struggle with disproportionate cluster sizes, while Single & Spectral overperform the former two:
-
-```{r}
-# convex data with two non-overlapping clusters and inconsistent cluster size
-
-# generate two clusters that are convex, non-overlapping (smaller size)
-x1i2_1 <- rmvnorm(10,c(0,0,0),sig1_1) # cluster 1, n=10
-x1i2_2 <- rmvnorm(50,c(4,-4,4),sig1_2) # cluster 2, n=50
-
-Xi3 <- rbind(x1i2_1,x1i2_2)
-           
-trueXi3 <- c(rep(1,10),rep(2,50)) # generate labels for data
-
-scatterplot3d(Xi2,color=trueXi2,pch=19)
-```
-
-```{r Single Linkage 3}
-single = agnes(Xi3, method = 'single')
-plot(single)
-scatterplot3d(Xi3,color=cutree(single, 3),pch=19)
-```
-
-```{r Spectral 3}
-spectral <- specc(Xi3, centers = 2)
-scatterplot3d(Xi3, color=spectral, pch=19)
-```
-
-```{r DBSCAN 3}
-db <- dbscan(Xi3, eps=2.5, minPts = 5)
-scatterplot3d(Xi3, color=db$cluster +1, pch=19)
-```
-
-```{r HDBSCAN 3}
-hdb <- hdbscan(Xi3, minPts = 5)
-scatterplot3d(Xi3, color=hdb$cluster +1, pch=19)
-```
-
-```{r ARI 3}
-print("Single Linkage:")
-ARI(trueXi3, cutree(single, 3))
-print("Spectral Clustering:")
-ARI(trueXi3, spectral)
-print("DBSCAN:")
-ARI(trueXi3, db$cluster)
-print("HDBSCAN:")
-ARI(trueXi3, hdb$cluster)
-```
-
-## Overlapping, 5:1 ratio
+## Overlapping, 5:2 ratio
 
 ```{r}
 # convex data with two overlapping clusters and inconsistent cluster size
 
 # generate two 3d clusters that are convex, overlapping
 x2i_1 <- rmvnorm(50,c(-8,8,8),sig2_1) # cluster 1, n=50
-x2i_2 <- rmvnorm(10,c(-10,11,11),sig2_2) # cluster 2, n=10
+x2i_2 <- rmvnorm(20,c(-10,11,11),sig2_2) # cluster 2, n=10
 
 X2i <- rbind(x2i_1,x2i_2)
 
-trueX2i <- c(rep(3,50),rep(4,10))
+trueX2i <- c(rep(3,50),rep(4,20))
 
 scatterplot3d(X2i,color=trueX2i,pch=19)
 ```
+
 ```{r Single Linkage 4}
 single = agnes(X2i, method = 'single')
 plot(single)
@@ -198,12 +142,12 @@ scatterplot3d(X2i, color=spectral, pch=19)
 ```
 
 ```{r DBSCAN 4}
-db <- dbscan(X2i, eps=2, minPts = 5)
+db <- dbscan(X2i, eps=2, minPts = 10)
 scatterplot3d(X2i, color=db$cluster +1, pch=19)
 ```
 
 ```{r HDBSCAN 4}
-hdb <- hdbscan(X2i, minPts = 5)
+hdb <- hdbscan(X2i, minPts = 7)
 scatterplot3d(X2i, color=hdb$cluster +1, pch=19)
 ```
 
@@ -218,21 +162,22 @@ print("HDBSCAN:")
 ARI(trueX2i, hdb$cluster)
 ```
 
-## Overlapping with 1:5 ratio
+## Overlapping with 2:5 ratio
 
-```{r 2}
+```{r}
 # convex data with two overlapping clusters and inconsistent cluster size
 
 # generate two 3d clusters that are convex, overlapping (sizes flipped)
-x2i2_1 <- rmvnorm(10,c(-8,8,8),sig2_1) # cluster 1, n=10
+x2i2_1 <- rmvnorm(20,c(-8,8,8),sig2_1) # cluster 1, n=10
 x2i2_2 <- rmvnorm(50,c(-10,11,11),sig2_2) # cluster 2, n=50
 
 X2i2 <- rbind(x2i2_1,x2i2_2)
 
-trueX2i2 <- c(rep(3,10),rep(4,50))
+trueX2i2 <- c(rep(3,20),rep(4,50))
 
 scatterplot3d(X2i2,color=trueX2i2,pch=19)
 ```
+
 ```{r Single Linkage 5}
 single = agnes(X2i2, method = 'single')
 plot(single)
@@ -245,12 +190,12 @@ scatterplot3d(X2i2, color=spectral, pch=19)
 ```
 
 ```{r DBSCAN 5}
-db <- dbscan(X2i2, eps=1.5, minPts = 4)
+db <- dbscan(X2i2, eps=2, minPts = 5)
 scatterplot3d(X2i2, color=db$cluster +1, pch=19)
 ```
 
 ```{r HDBSCAN 5}
-hdb <- hdbscan(X2i2, minPts = 3)
+hdb <- hdbscan(X2i2, minPts = 4)
 scatterplot3d(X2i2, color=hdb$cluster +1, pch=19)
 ```
 
@@ -302,6 +247,7 @@ trueX3i <- c(rep(5,200),rep(6,100),rep(7,50))
 
 scatterplot3d(X3i,color=trueX3i,pch=19)
 ```
+
 ```{r Single Linkage 6}
 single = agnes(X3i, method = 'single')
 plot(single)
@@ -319,7 +265,7 @@ scatterplot3d(X3i, color=db$cluster +1, pch=19)
 ```
 
 ```{r HDBSCAN 6}
-hdb <- hdbscan(X3i, minPts = 35)
+hdb <- hdbscan(X3i, minPts = 20)
 scatterplot3d(X3i, color=hdb$cluster +1, pch=19)
 ```
 
@@ -334,12 +280,12 @@ print("HDBSCAN:")
 ARI(trueX3i, hdb$cluster)
 ```
 
-## Saddle & Spring, overlapping, 5:1:1 ratio:
+## Saddle & Spring, overlapping, 40:15 ratio:
 ```{r}
 # non-convex data of a saddle and spring forming overlapping clusters with
 # inconsistent cluster size
 
-# simulate data in shape of saddle, cluster 1 n=500
+# simulate data in shape of saddle, cluster 1 n=400
 x4i_1 <- runif(400,-4,4)
 x4i_2 <- runif(400,-4,4)
 x4i_3 <- x4i_1^2 - x4i_2^2
@@ -351,16 +297,8 @@ x4i_4 <- cos(ti)
 x4i_5 <- sin(ti)
 x4i_6 <- ti * rnorm(150,mean=1,sd=0.01)
 
-# simulate data in horizontal helix shape, cluster 3 n=100
-t2i <- seq(-5,2*pi,length.out=150) * rnorm(150,mean=1,sd=0.04)
-
-x4i_7 <- 1/3*((1-t2i) + (1-t2i)*cos(t2i) - 1/sqrt(6)*(1-t2i)*sin(t2i))
-x4i_8 <- 1/3*((1-t2i) - 1/sqrt(2)*cos(t2i) - 1/sqrt(6)*(1-t2i)*sin(t2i))
-x4i_9 <- 1/3*((1-t2i) +2/sqrt(6)*(1-t2i)*sin(t2i))*rnorm(150,mean=1,sd=0.01)
-
 X4i_1 <- cbind(x4i_1,x4i_2,x4i_3)
 X4i_2 <- cbind(x4i_4,x4i_5,x4i_6)
-X4i_3 <- cbind(x4i_7,x4i_8,x4i_9)
 
 X4i <- rbind(X4i_1,X4i_2)
 
@@ -368,6 +306,7 @@ trueX4i <- c(rep('purple',400),rep('yellow',150))
 
 scatterplot3d(X4i,pch=19,color=trueX4i)
 ```
+
 ```{r Single Linkage 7}
 single = agnes(X4i, method = 'single')
 plot(single)
@@ -380,7 +319,7 @@ scatterplot3d(X4i, color=spectral, pch=19)
 ```
 
 ```{r DBSCAN 7}
-db <- dbscan(X4i, eps=1.5, minPts = 25)
+db <- dbscan(X4i, eps=1.5, minPts = 20)
 scatterplot3d(X4i, color=db$cluster +1, pch=19)
 ```
 
@@ -400,41 +339,34 @@ print("HDBSCAN:")
 ARI(trueX4i, hdb$cluster)
 ```
 
-## Saddle & Spring, overlapping, 1:5:1 ratio:
+## Saddle & Spring, overlapping, 15:40 ratio:
 
 ```{r}
 # non-convex data of a saddle and spring forming two overlapping clusters
 # with inconsistent cluster size (sizes flipped)
 
-# simulate data in shape of saddle, cluster 1 n=100
-x4i2_1 <- runif(100,-3,3)
-x4i2_2 <- runif(100,-3,3)
+# simulate data in shape of saddle, cluster 1 n=150
+x4i2_1 <- runif(150,-4,4)
+x4i2_2 <- runif(150,-4,4)
 x4i2_3 <- x4i2_1^2 - x4i2_2^2
 
-# simulate data in helix shape, cluster 2 n=500
-ti2 <- seq(-10,2*pi,length.out=500) * rnorm(500,mean=1,sd=0.04)
+# simulate data in helix shape, cluster 2 n=400
+ti2 <- seq(-10,2*pi,length.out=400) * rnorm(400,mean=1,sd=0.04)
 
 x4i2_4 <- cos(ti2)
 x4i2_5 <- sin(ti2)
-x4i2_6 <- ti2 * rnorm(500,mean=1,sd=0.01)
-
-# simulate data in horizontal helix shape, cluster 3 n=100
-t2i2 <- seq(-5,2*pi,length.out=100) * rnorm(100,mean=1,sd=0.04)
-
-x4i2_7 <- 1/3*((1-t2i2) + (1-t2i2)*cos(t2i2) - 1/sqrt(6)*(1-t2i2)*sin(t2i2))
-x4i2_8 <- 1/3*((1-t2i2) - 1/sqrt(2)*cos(t2i2) - 1/sqrt(6)*(1-t2i2)*sin(t2i2))
-x4i2_9 <- 1/3*((1-t2i2) +2/sqrt(6)*(1-t2i2)*sin(t2i2))*rnorm(100,mean=1,sd=0.01)
+x4i2_6 <- ti2 * rnorm(400,mean=1,sd=0.01)
 
 X4i2_1 <- cbind(x4i2_1,x4i2_2,x4i2_3)
 X4i2_2 <- cbind(x4i2_4,x4i2_5,x4i2_6)
-X4i2_3 <- cbind(x4i2_7,x4i2_8,x4i2_9)
 
 X4i2 <- rbind(X4i2_1, X4i2_2)
 
-trueX4i2 <- c(rep('purple',100),rep('yellow',500))
+trueX4i2 <- c(rep('purple',150),rep('yellow',400))
 
 scatterplot3d(X4i2,pch=19,color=trueX4i2)
 ```
+
 
 ```{r Single Linkage 8}
 single = agnes(X4i2, method = 'single')
@@ -448,12 +380,12 @@ scatterplot3d(X4i2, color=spectral, pch=19)
 ```
 
 ```{r DBSCAN 8}
-db <- dbscan(X4i2, eps=1.5, minPts = 65)
+db <- dbscan(X4i2, eps=1.5, minPts = 50)
 scatterplot3d(X4i2, color=db$cluster +1, pch=19)
 ```
 
 ```{r HDBSCAN 8}
-hdb <- hdbscan(X4i2, minPts = 50)
+hdb <- hdbscan(X4i2, minPts = 30)
 scatterplot3d(X4i2, color=hdb$cluster +1, pch=19)
 ```
 
