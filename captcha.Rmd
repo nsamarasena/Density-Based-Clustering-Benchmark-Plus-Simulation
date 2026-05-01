@@ -22,7 +22,7 @@ makecaptcha <- function(
   height = 80,
   pointsize = sample(32:38, 1),
   overlap = FALSE,
-  distort = FALSE,
+  distort = TRUE,
   nlines = sample(0:2, 1),
   ndots = sample(15:35, 1)
 ) {
@@ -32,7 +32,7 @@ makecaptcha <- function(
   img <- magick::image_blank(width = width, height = height, color = "white")
 
   basey <- sample(round(height * 0.54):round(height * 0.66), 1)
-  estcharw <- pointsize * 0.95 #SPACING
+  estcharw <- pointsize * 0.75 #SPACING
 
   if (overlap) {
     steps <- sample(
@@ -124,9 +124,9 @@ makecaptcha <- function(
 
   if (distort) {
     disttype <- sample(
-      c("none", "shear", "rotate", "implode", "combo"),
+      c("none", "shear", "rotate"),
       1,
-      prob = c(0.20, 0.30, 0.25, 0.10, 0.15)
+      prob = c(0.20, 0.30, 0.25)
     )
 
     if (disttype == "shear") {
@@ -284,7 +284,7 @@ makepointcaptcha <- function(
     border = 2
   ) |>
     croppoints(pad = 1) |>
-    thinpoints(keepfrac = 0.8) |> #THIS IS HOW SPARSE THE CLOUD IS
+    thinpoints(keepfrac = 0.99) |> #THIS IS HOW SPARSE THE CLOUD IS
     addpointnoise(
       nbg = nbg,
       jitter = jitter,
@@ -300,7 +300,7 @@ makepointcaptcha <- function(
 ```
 
 ```{r generate}
-z <- makepointcaptcha(text="Shaam")
+z <- makepointcaptcha()
 oldx <- z$pts$x
 oldy <- z$pts$y
 z$pts$x <- -oldy
@@ -373,7 +373,7 @@ ggplot(pts, aes(x, -y, color = cluster)) +
 ```{r hdbscan}
 goodzs <- readRDS("goodzs.rds")
 
-pts <- goodzs$z14$pts
+pts <- goodzs$z8$pts
 hdb <- hdbscan(as.matrix(pts[, c("x", "y")]), minPts = 6)
 pts$cluster <- factor(hdb$cluster)
 
@@ -386,3 +386,267 @@ ggplot(pts, aes(x, -y, color = cluster)) +
   theme_void() +
   guides(color = "none")
 ```
+
+```{r spectral}
+library(kernlab)
+pts <- goodzs$z8$pts
+
+k <- 9
+
+sp <- specc(as.matrix(pts[, c("x", "y")]), centers = k)
+pts$cluster <- factor(sp)
+
+ggplot(pts, aes(x, -y, color = cluster)) +
+  geom_point(size = 0.7) +
+  scale_color_viridis_d(option = "turbo") +
+  coord_equal() +
+  theme_void() +
+  guides(color = "none")
+```
+
+```{r single}
+pts <- goodzs$z8$pts
+
+# distance matrix
+d <- dist(pts[, c("x", "y")])
+
+# single linkage hierarchical clustering
+hc <- hclust(d, method = "single")
+
+# choose number of clusters
+k <- 8
+pts$cluster <- factor(cutree(hc, k = k))
+
+ggplot(pts, aes(x, -y, color = cluster)) +
+  geom_point(size = 0.7) +
+  scale_color_viridis_d(option = "turbo") +
+  coord_equal() +
+  theme_void() +
+  guides(color = "none")
+```
+
+```{r gennoiseless}
+makepointcaptcha_noiseless <- function(
+  text = randtext(),
+  width = 200,
+  height = 80,
+  pointsize = sample(32:38, 1),
+  distort = TRUE,
+  cutoff = 0.95
+) {
+  chars <- strsplit(text, "")[[1]]
+  n <- length(chars)
+
+  img <- magick::image_blank(width = width, height = height, color = "white")
+
+  basey <- sample(round(height * 0.54):round(height * 0.66), 1)
+  estcharw <- pointsize * 0.66
+  steps <- sample(
+    seq(round(estcharw * 0.80), round(estcharw * 0.95)),
+    n - 1,
+    replace = TRUE
+  )
+
+  xpos <- numeric(n)
+  xpos[1] <- sample(10:18, 1)
+
+  if (n > 1) {
+    for (j in 2:n) {
+      xpos[j] <- xpos[j - 1] + steps[j - 1]
+    }
+  }
+
+  rightedge <- max(xpos) + estcharw + 15
+  if (rightedge > width) {
+    shift <- rightedge - width
+    xpos <- pmax(3, xpos - shift)
+  }
+
+  ypos <- basey + sample(-3:3, n, replace = TRUE)
+  rot <- sample(-10:10, n, replace = TRUE)
+
+  # --- draw characters
+  for (j in seq_len(n)) {
+    charimg <- magick::image_blank(width = 70, height = 70, color = "none") |>
+      magick::image_annotate(
+        text = chars[j],
+        size = pointsize,
+        color = "black",
+        gravity = "center"
+      ) |>
+      magick::image_rotate(rot[j])
+
+    img <- magick::image_composite(
+      img,
+      charimg,
+      offset = paste0("+", round(xpos[j]), "+", round(ypos[j] - 35))
+    )
+  }
+
+  # --- mild global distortion only (no chaos)
+  if (distort) {
+    disttype <- sample(c("none", "shear", "rotate"), 1)
+
+    if (disttype == "shear") {
+      img <- magick::image_shear(
+        img,
+        geometry = sprintf("%dx%d", sample(-4:4, 1), sample(-2:2, 1))
+      )
+    } else if (disttype == "rotate") {
+      img <- magick::image_rotate(img, runif(1, -6, 6))
+    }
+  }
+
+  img <- img |>
+    magick::image_background("white", flatten = TRUE) |>
+    magick::image_extent(
+      geometry = sprintf("%dx%d", width, height),
+      gravity = "center",
+      color = "white"
+    )
+
+  # --- convert to points (NO fuzz, NO thinning, NO noise)
+  pts <- imgtopoints(
+    img,
+    cutoff = cutoff,
+    fuzzband = NULL,
+    fuzzprob = 0,
+    border = 2
+  ) |>
+    croppoints(pad = 1)
+
+  pts$label <- "signal"
+
+  list(
+    text = text,
+    pts = pts
+  )
+}
+```
+
+```{r class}
+z <- makepointcaptcha_noiseless(text = "eggplant")
+
+oldx <- z$pts$x
+oldy <- z$pts$y
+z$pts$x <- -oldy
+z$pts$y <- oldx
+z$pts$x <- z$pts$x - min(z$pts$x)
+z$pts$y <- z$pts$y - min(z$pts$y)
+z$pts$x <- max(z$pts$x) - z$pts$x
+
+z$text
+
+ggplot(z$pts, aes(x, -y)) +
+  geom_point(size = 0.6) +
+  coord_equal() +
+  theme_void()
+
+
+```
+
+
+
+```{r noiseless}
+savegoodz_noiseless <- function(z, path = "goodzs_noiseless.rds") {
+  if (file.exists(path)) {
+    db <- readRDS(path)
+  } else {
+    db <- list()
+  }
+
+  id <- paste0("z", length(db) + 1)
+  db[[id]] <- z
+
+  saveRDS(db, path)
+
+  message("Saved as ", id, " in ", path)
+  invisible(id)
+}
+
+
+```
+
+```{r noiseless save}
+savegoodz_noiseless(z)
+```
+
+```{r noiseless hdbscan}
+goodzs <- readRDS("goodzs_noiseless.rds")
+
+pts <- goodzs$z3$pts
+hdb <- hdbscan(as.matrix(pts[, c("x", "y")]), minPts = 11)
+pts$cluster <- factor(hdb$cluster)
+
+ggplot(pts, aes(x, -y, color = cluster)) +
+  geom_point(size = 0.7) +
+  scale_color_viridis_d(option = "turbo") +
+  coord_equal() +
+  theme_void() +
+  guides(color = "none")
+
+
+```
+
+```{r noiseless dbscan}
+goodzs <- readRDS("goodzs_noiseless.rds")
+pts <- goodzs$z3$pts
+
+x <- pts[, c("x", "y")]
+
+epsvals <- seq(0.001, 0.03, by = 0.001)
+
+res <- lapply(epsvals, function(e) {
+  db <- dbscan(x, eps = e, minPts = 3)
+  labs <- db$cluster
+  k <- length(unique(labs[labs != 0]))
+  data.frame(eps = e, ncluster = k, nnoise = sum(labs == 0))
+})
+
+tab <- do.call(rbind, res)
+print(tab)
+
+pick <- which(tab$ncluster > 1)[1]
+
+if (is.na(pick)) {
+  stop("No eps value in the search grid produced more than one cluster.")
+}
+
+besteps <- tab$eps[pick]
+cat("Using eps =", besteps, "\n")
+
+db <- dbscan(x, eps = besteps, minPts = 3)
+
+pts$cluster <- factor(db$cluster)
+
+ggplot(pts, aes(x, -y, color = cluster)) +
+  geom_point(size = 0.7) +
+  coord_equal() +
+  theme_void() +
+  guides(color = "none")
+```
+
+
+```{r forced-fragmentation}
+library(dbscan)
+library(ggplot2)
+
+goodzs <- readRDS("goodzs_noiseless.rds")
+pts <- goodzs$z2$pts
+x <- pts[, c("x", "y")]
+
+db <- dbscan(x, eps = 0.003, minPts = 2)
+
+pts$cluster <- factor(db$cluster)
+
+table(db$cluster)
+
+ggplot(pts, aes(x, -y, color = cluster)) +
+  geom_point(size = 0.7) +
+  coord_equal() +
+  theme_void() +
+  guides(color = "none")
+
+
+```
+
