@@ -92,20 +92,12 @@ x4_4 <- cos(t)
 x4_5 <- sin(t)
 x4_6 <- t * rnorm(500,mean=1,sd=0.01)
 
-# simulate data in horizontal helix shape, cluster 3
-t2 <- seq(-5,2*pi,length.out=500) * rnorm(500,mean=1,sd=0.04)
-
-x4_7 <- 1/3*((1-t2) + (1-t)*cos(t2) - 1/sqrt(6)*(1-t2)*sin(t2))
-x4_8 <- 1/3*((1-t2) - 1/sqrt(2)*cos(t2) - 1/sqrt(6)*(1-t2)*sin(t2))
-x4_9 <- 1/3*((1-t2) +2/sqrt(6)*(1-t2)*sin(t2))*rnorm(500,mean=1,sd=0.01)
-
 X4_1 <- cbind(x4_1,x4_2,x4_3)
 X4_2 <- cbind(x4_4,x4_5,x4_6)
-X4_3 <- cbind(x4_7,x4_8,x4_9)
 
-X4 <- rbind(X4_1,X4_2,X4_3)
+X4 <- rbind(X4_1,X4_2)
 
-trueX4 <- rep(c('purple','yellow','black'),each=500)
+trueX4 <- rep(c('purple','yellow'),each=500)
 
 scatterplot3d(X4,pch=19,color=trueX4)
 ```
@@ -117,11 +109,11 @@ scatterplot3d(X4,pch=19,color=trueX4)
 
 # generate two clusters that are convex, non-overlapping
 x1i_1 <- rmvnorm(50,c(0,0,0),sig1_1) # cluster 1, n=50
-x1i_2 <- rmvnorm(10,c(8,8,8),sig1_2) # cluster 2, n=10
+x1i_2 <- rmvnorm(20,c(8,8,8),sig1_2) # cluster 2, n=10
 
 Xi <- rbind(x1i_1,x1i_2)
            
-trueXi <- c(rep(1,50),rep(2,10)) # generate labels for data
+trueXi <- c(rep(1,50),rep(2,20)) # generate labels for data
 
 scatterplot3d(Xi,color=trueXi,pch=19)
 ```
@@ -130,12 +122,12 @@ scatterplot3d(Xi,color=trueXi,pch=19)
 # convex data with two non-overlapping clusters and inconsistent cluster size
 
 # generate two clusters that are convex, non-overlapping (sizes flipped)
-x1i2_1 <- rmvnorm(10,c(0,0,0),sig1_1) # cluster 1, n=10
+x1i2_1 <- rmvnorm(20,c(0,0,0),sig1_1) # cluster 1, n=10
 x1i2_2 <- rmvnorm(50,c(8,8,8),sig1_2) # cluster 2, n=50
 
 Xi2 <- rbind(x1i2_1,x1i2_2)
            
-trueXi2 <- c(rep(1,10),rep(2,50)) # generate labels for data
+trueXi2 <- c(rep(1,20),rep(2,50)) # generate labels for data
 
 scatterplot3d(Xi2,color=trueXi2,pch=19)
 ```
@@ -145,11 +137,11 @@ scatterplot3d(Xi2,color=trueXi2,pch=19)
 
 # generate two 3d clusters that are convex, overlapping
 x2i_1 <- rmvnorm(50,c(-8,8,8),sig2_1) # cluster 1, n=50
-x2i_2 <- rmvnorm(10,c(-10,11,11),sig2_2) # cluster 2, n=10
+x2i_2 <- rmvnorm(20,c(-10,11,11),sig2_2) # cluster 2, n=10
 
 X2i <- rbind(x2i_1,x2i_2)
 
-trueX2i <- c(rep(3,50),rep(4,10))
+trueX2i <- c(rep(3,50),rep(4,20))
 
 scatterplot3d(X2i,color=trueX2i,pch=19)
 ```
@@ -158,12 +150,12 @@ scatterplot3d(X2i,color=trueX2i,pch=19)
 # convex data with two overlapping clusters and inconsistent cluster size
 
 # generate two 3d clusters that are convex, overlapping (sizes flipped)
-x2i2_1 <- rmvnorm(10,c(-8,8,8),sig2_1) # cluster 1, n=10
+x2i2_1 <- rmvnorm(20,c(-8,8,8),sig2_1) # cluster 1, n=10
 x2i2_2 <- rmvnorm(50,c(-10,11,11),sig2_2) # cluster 2, n=50
 
 X2i2 <- rbind(x2i2_1,x2i2_2)
 
-trueX2i2 <- c(rep(3,10),rep(4,50))
+trueX2i2 <- c(rep(3,20),rep(4,50))
 
 scatterplot3d(X2i2,color=trueX2i2,pch=19)
 ```
@@ -208,32 +200,24 @@ scatterplot3d(X3i,color=trueX3i,pch=19)
 # non-convex data of a saddle and spring forming overlapping clusters with
 # inconsistent cluster size
 
-# simulate data in shape of saddle, cluster 1 n=500
-x4i_1 <- runif(500,-3,3)
-x4i_2 <- runif(500,-3,3)
+# simulate data in shape of saddle, cluster 1 n=400
+x4i_1 <- runif(400,-4,4)
+x4i_2 <- runif(400,-4,4)
 x4i_3 <- x4i_1^2 - x4i_2^2
 
-# simulate data in helix shape, cluster 2 n=100
-ti <- seq(-10,2*pi,length.out=100) * rnorm(100,mean=1,sd=0.04)
+# simulate data in helix shape, cluster 2 n=150
+ti <- seq(-10,2*pi,length.out=150) * rnorm(150,mean=1,sd=0.04)
 
 x4i_4 <- cos(ti)
 x4i_5 <- sin(ti)
-x4i_6 <- ti * rnorm(100,mean=1,sd=0.01)
-
-# simulate data in horizontal helix shape, cluster 3 n=100
-t2i <- seq(-5,2*pi,length.out=100) * rnorm(100,mean=1,sd=0.04)
-
-x4i_7 <- 1/3*((1-t2i) + (1-t2i)*cos(t2i) - 1/sqrt(6)*(1-t2i)*sin(t2i))
-x4i_8 <- 1/3*((1-t2i) - 1/sqrt(2)*cos(t2i) - 1/sqrt(6)*(1-t2i)*sin(t2i))
-x4i_9 <- 1/3*((1-t2i) +2/sqrt(6)*(1-t2i)*sin(t2i))*rnorm(100,mean=1,sd=0.01)
+x4i_6 <- ti * rnorm(150,mean=1,sd=0.01)
 
 X4i_1 <- cbind(x4i_1,x4i_2,x4i_3)
 X4i_2 <- cbind(x4i_4,x4i_5,x4i_6)
-X4i_3 <- cbind(x4i_7,x4i_8,x4i_9)
 
-X4i <- rbind(X4i_1,X4i_2,X4i_3)
+X4i <- rbind(X4i_1,X4i_2)
 
-trueX4i <- c(rep('purple',500),rep('yellow',100),rep('black',100))
+trueX4i <- c(rep('purple',400),rep('yellow',150))
 
 scatterplot3d(X4i,pch=19,color=trueX4i)
 ```
@@ -242,32 +226,24 @@ scatterplot3d(X4i,pch=19,color=trueX4i)
 # non-convex data of a saddle and spring forming two overlapping clusters
 # with inconsistent cluster size (sizes flipped)
 
-# simulate data in shape of saddle, cluster 1 n=100
-x4i2_1 <- runif(100,-3,3)
-x4i2_2 <- runif(100,-3,3)
+# simulate data in shape of saddle, cluster 1 n=150
+x4i2_1 <- runif(150,-4,4)
+x4i2_2 <- runif(150,-4,4)
 x4i2_3 <- x4i2_1^2 - x4i2_2^2
 
-# simulate data in helix shape, cluster 2 n=500
-ti2 <- seq(-10,2*pi,length.out=500) * rnorm(500,mean=1,sd=0.04)
+# simulate data in helix shape, cluster 2 n=400
+ti2 <- seq(-10,2*pi,length.out=400) * rnorm(400,mean=1,sd=0.04)
 
 x4i2_4 <- cos(ti2)
 x4i2_5 <- sin(ti2)
-x4i2_6 <- ti2 * rnorm(500,mean=1,sd=0.01)
-
-# simulate data in horizontal helix shape, cluster 3 n=100
-t2i2 <- seq(-5,2*pi,length.out=100) * rnorm(100,mean=1,sd=0.04)
-
-x4i2_7 <- 1/3*((1-t2i2) + (1-t2i2)*cos(t2i2) - 1/sqrt(6)*(1-t2i2)*sin(t2i2))
-x4i2_8 <- 1/3*((1-t2i2) - 1/sqrt(2)*cos(t2i2) - 1/sqrt(6)*(1-t2i2)*sin(t2i2))
-x4i2_9 <- 1/3*((1-t2i2) +2/sqrt(6)*(1-t2i2)*sin(t2i2))*rnorm(100,mean=1,sd=0.01)
+x4i2_6 <- ti2 * rnorm(400,mean=1,sd=0.01)
 
 X4i2_1 <- cbind(x4i2_1,x4i2_2,x4i2_3)
 X4i2_2 <- cbind(x4i2_4,x4i2_5,x4i2_6)
-X4i2_3 <- cbind(x4i2_7,x4i2_8,x4i2_9)
 
-X4i2 <- rbind(X4i2_1, X4i2_2, X4i2_3)
+X4i2 <- rbind(X4i2_1, X4i2_2)
 
-trueX4i2 <- c(rep('purple',100),rep('yellow',500),rep('black',100))
+trueX4i2 <- c(rep('purple',150),rep('yellow',400))
 
 scatterplot3d(X4i2,pch=19,color=trueX4i2)
 ```
