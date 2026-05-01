@@ -6,6 +6,8 @@ output: html_document
 ```{r}
 library(mvtnorm) # for simulating convex data
 library(scatterplot3d) # for 3d visualization
+
+set.seed(865)
 ```
 
 # Convex data with consistent cluster size
