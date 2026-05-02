@@ -96,12 +96,12 @@ trueX4 <- c(rep(c('purple','yellow'),each=500),rep('grey',50))
 scatterplot3d(X4,pch=19,color=trueX4)
 ```
 ```{r}
-out <- run_methods(X4, trueX4, k = 2)
+out <- run_methods(X4, trueX4, k = 2, 
+    hdb_minPts = 8)
 out$results
 ```
 
 # Convex data with inconsistent cluster size
-
 
 ```{r}
 # convex data with two non-overlapping clusters and inconsistent cluster size
@@ -123,6 +123,11 @@ Xi2 <- rbind(x1i2_1,x1i2_2,noise3)
 trueXi2 <- c(rep(1,60),rep(2,150),rep('grey',50)) # generate labels for data
 
 scatterplot3d(Xi2,color=trueXi2,pch=19)
+```
+```{r}
+out <- run_methods(Xi2, trueXi2, k = 2,
+                   db_minPts = 3)
+out$results
 ```
 
 ```{r}
@@ -146,6 +151,12 @@ trueX2i <- c(rep(3,150),rep(4,60),rep('grey',50))
 
 scatterplot3d(X2i,color=trueX2i,pch=19)
 ```
+```{r}
+out <- run_methods(X2i, trueX2i, k = 2,
+                   hdb_minPts = 10)
+out$results
+```
+
 
 # Non-convex data with inconsistent cluster size
 
@@ -173,5 +184,11 @@ X4i <- rbind(X4i_1,X4i_2,noise2)
 trueX4i <- c(rep('purple',400),rep('yellow',150),rep('grey',50))
 
 scatterplot3d(X4i,pch=19,color=trueX4i)
+```
+```{r}
+out <- run_methods(X4i, trueX4i, k = 2,
+                   db_eps = 2,
+                   hdb_minPts = 8)
+out$results
 ```
 
