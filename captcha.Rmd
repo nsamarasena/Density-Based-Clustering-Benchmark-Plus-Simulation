@@ -725,7 +725,7 @@ for (i in seq_along(zlist)) {
     "hdb =", round(ressignal$hdbscan[i], 3),
     "sp =", round(ressignal$spectral[i], 3),
     "single =", round(ressignal$single[i], 3),
-    "| full db =", round(resfull$dbscan[i], 3),l
+    "| full db =", round(resfull$dbscan[i], 3),
     "hdb =", round(resfull$hdbscan[i], 3),
     "sp =", round(resfull$spectral[i], 3),
     "single =", round(resfull$single[i], 3),
