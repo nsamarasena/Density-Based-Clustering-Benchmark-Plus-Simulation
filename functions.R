@@ -23,10 +23,13 @@ run_methods <- function(
 ) {
   X <- if (scale_data) scale(data) else data
   
-  db_minPts <- estimate_minPts(X, 2 * ncol(X))
-  if (is.null(db_eps)) {
-    db_eps <- estimate_eps(X, minPts = db_minPts, prob = eps_quantile)
+  if (is.null(db_minPts)){
+    db_minPts <- estimate_minPts(X, 2*ncol(X))
   }
+  if (is.null(db_eps)) {
+    db_eps <- estimate_eps(X, minPts = db_minPts, prob = eps_quantile)}
+  
+  hdb_minPts <- estimate_minPts(X, hdb_minPts)
   
   single <- agnes(X, method = "single")
   single_cut <- cutree(single, k)
@@ -34,7 +37,7 @@ run_methods <- function(
   spectral <- specc(X, centers = k)
   
   db <- dbscan(X, eps = db_eps, minPts = db_minPts)
-  hdb <- hdbscan(X, minPts = estimate_minPts(X, hdb_minPts))
+  hdb <- hdbscan(X, minPts = hdb_minPts)
   
   results <- data.frame(
     method = c("single", "spectral", "dbscan", "hdbscan"),

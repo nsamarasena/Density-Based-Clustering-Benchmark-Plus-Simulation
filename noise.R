@@ -1,0 +1,139 @@
+
+library(mvtnorm) # for simulating convex data
+library(scatterplot3d) # for 3d visualization
+
+set.seed(865)
+
+
+# non-convex data in the shape of a triple helix with three non-overlapping 
+# clusters and consistent cluster size
+
+t <- seq(-1,4*pi,length.out=200) * rnorm(200,mean=1,sd=0.04)
+
+# 50 observations of noise data
+
+noise_x <- runif(50,-6,6)
+noise_y <- runif(50,-6,6)
+noise_z <- runif(50,-20,70)
+
+# cluster 1
+x3_1 <- cos(t)
+x3_2 <- sin(t)
+x3_3 <- 4*t 
+# * rnorm(200,mean=1,sd=0.01)
+
+# cluster 2
+x3_4 <- cos(t+ 2*pi/3)
+x3_5 <- sin(t+ 2*pi/3)
+x3_6 <- 4*t 
+# * rnorm(200,mean=1,sd=0.01)
+
+# cluster 3
+x3_7 <- cos(t+ 4*pi/3)
+x3_8 <- sin(t+ 4*pi/3)
+x3_9 <- 4*t 
+# * rnorm(200,mean=1,sd=0.01)
+
+noise <- cbind(noise_x,noise_y,noise_z)
+X3_1 <- cbind(x3_1,x3_2,x3_3)
+X3_2 <- cbind(x3_4,x3_5,x3_6)
+X3_3 <- cbind(x3_7,x3_8,x3_9)
+
+X3 <- rbind(X3_1,X3_2,X3_3,noise)
+
+trueX3 <- c(rep(5:7,each=200),rep('grey',50))
+
+#----------------------------------
+# non-convex data of a saddle and spring forming two overlapping clusters
+# with consistent cluster size, n=500
+
+# 50 observations of noise data
+
+noise2_x <- runif(50,-5,5)
+noise2_y <- runif(50,-5,5)
+noise2_z <- runif(50,-15,15)
+
+# simulate data in shape of saddle, cluster 1
+x4_1 <- runif(500,-3,3)
+x4_2 <- runif(500,-3,3)
+x4_3 <- x4_1^2 - x4_2^2
+
+# simulate data in helix shape, cluster 2
+t <- seq(-10,2*pi,length.out=500) * rnorm(500,mean=1,sd=0.04)
+
+x4_4 <- cos(t)
+x4_5 <- sin(t)
+x4_6 <- t * rnorm(500,mean=1,sd=0.01)
+
+noise2 <- cbind(noise2_x,noise2_y,noise2_z)
+X4_1 <- cbind(x4_1,x4_2,x4_3)
+X4_2 <- cbind(x4_4,x4_5,x4_6)
+
+X4 <- rbind(X4_1,X4_2,noise2)
+
+trueX4 <- c(rep(c('purple','yellow'),each=500),rep('grey',50))
+
+
+#-------------------------
+# convex data with two non-overlapping clusters and inconsistent cluster size
+
+# 50 observations of noise data
+
+noise3_x <- runif(50,-5,15)
+noise3_y <- runif(50,-10,20)
+noise3_z <- runif(50,-5,15)
+
+noise3 <- cbind(noise3_x,noise3_y,noise3_z)
+
+# generate two clusters that are convex, non-overlapping (sizes flipped)
+x1i2_1 <- rmvnorm(60,c(0,0,0),sig1_1) # cluster 1, n=60
+x1i2_2 <- rmvnorm(150,c(8,8,8),sig1_2) # cluster 2, n=150
+
+Xi2 <- rbind(x1i2_1,x1i2_2,noise3)
+
+trueXi2 <- c(rep(1,60),rep(2,150),rep('grey',50)) # generate labels for data
+
+
+#--------------------------------------
+# convex data with two overlapping clusters and inconsistent cluster size
+
+# 50 observations of noise data
+
+noise4_x <- runif(50,-15,0)
+noise4_y <- runif(50,-2,16)
+noise4_z <- runif(50,0,15)
+
+noise4 <- cbind(noise4_x,noise4_y,noise4_z)
+
+# generate two 3d clusters that are convex, overlapping
+x2i_1 <- rmvnorm(150,c(-8,8,8),sig2_1) # cluster 1, n=150
+x2i_2 <- rmvnorm(60,c(-10,11,11),sig2_2) # cluster 2, n=60
+
+X2i <- rbind(x2i_1,x2i_2,noise4)
+
+trueX2i <- c(rep(3,150),rep(4,60),rep('grey',50))
+
+
+#----------------------------------
+# non-convex data of a saddle and spring forming overlapping clusters with
+# inconsistent cluster size
+
+# simulate data in shape of saddle, cluster 1 n=400
+x4i_1 <- runif(400,-4,4)
+x4i_2 <- runif(400,-4,4)
+x4i_3 <- x4i_1^2 - x4i_2^2
+
+# simulate data in helix shape, cluster 2 n=150
+ti <- seq(-10,2*pi,length.out=150) * rnorm(150,mean=1,sd=0.04)
+
+x4i_4 <- cos(ti)
+x4i_5 <- sin(ti)
+x4i_6 <- ti * rnorm(150,mean=1,sd=0.01)
+
+X4i_1 <- cbind(x4i_1,x4i_2,x4i_3)
+X4i_2 <- cbind(x4i_4,x4i_5,x4i_6)
+
+X4i <- rbind(X4i_1,X4i_2,noise2)
+
+trueX4i <- c(rep('purple',400),rep('yellow',150),rep('grey',50))
+

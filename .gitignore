@@ -3,6 +3,9 @@
 .RData
 .Ruserdata
 main.pdf
+main.Rmd
 clustering-consistent.pdf
 ckustering-inconsistent.pdf
 ckustering-inconsistent.Rmd
+datasim.Rmd
+noise.Rmd
