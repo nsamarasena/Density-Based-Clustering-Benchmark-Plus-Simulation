@@ -30,9 +30,10 @@ makecaptcha <- function(
   n <- length(chars)
 
   img <- magick::image_blank(width = width, height = height, color = "white")
+  layers <- vector("list", n)
 
   basey <- sample(round(height * 0.54):round(height * 0.66), 1)
-  estcharw <- pointsize * 0.75 #SPACING
+  estcharw <- pointsize * 1.1
 
   if (overlap) {
     steps <- sample(
@@ -76,11 +77,21 @@ makecaptcha <- function(
       ) |>
       magick::image_rotate(rot[j])
 
+    offset <- paste0("+", round(xpos[j]), "+", round(ypos[j] - 35))
+
     img <- magick::image_composite(
       img,
       charimg,
-      offset = paste0("+", round(xpos[j]), "+", round(ypos[j] - 35))
+      offset = offset
     )
+
+    layer <- magick::image_blank(width = width, height = height, color = "white") |>
+      magick::image_composite(
+        charimg,
+        offset = offset
+      )
+
+    layers[[j]] <- layer
   }
 
   if (nlines > 0) {
@@ -121,6 +132,10 @@ makecaptcha <- function(
   }
 
   disttype <- "none"
+  shearx <- NULL
+  sheary <- NULL
+  ang <- NULL
+  impl <- NULL
 
   if (distort) {
     disttype <- sample(
@@ -130,21 +145,53 @@ makecaptcha <- function(
     )
 
     if (disttype == "shear") {
+      shearx <- sample(-5:5, 1)
+      sheary <- sample(-2:2, 1)
+
       img <- magick::image_shear(
         img,
-        geometry = sprintf("%dx%d", sample(-5:5, 1), sample(-2:2, 1))
+        geometry = sprintf("%dx%d", shearx, sheary)
+      )
+
+      layers <- lapply(
+        layers,
+        \(u) magick::image_shear(
+          u,
+          geometry = sprintf("%dx%d", shearx, sheary)
+        )
       )
     } else if (disttype == "rotate") {
-      img <- magick::image_rotate(img, runif(1, -8, 8))
+      ang <- runif(1, -8, 8)
+
+      img <- magick::image_rotate(img, ang)
+      layers <- lapply(layers, \(u) magick::image_rotate(u, ang))
     } else if (disttype == "implode") {
-      img <- magick::image_implode(img, factor = runif(1, -0.08, 0.08))
+      impl <- runif(1, -0.08, 0.08)
+
+      img <- magick::image_implode(img, factor = impl)
+      layers <- lapply(layers, \(u) magick::image_implode(u, factor = impl))
     } else if (disttype == "combo") {
+      shearx <- sample(-4:4, 1)
+      sheary <- sample(-2:2, 1)
+      ang <- runif(1, -6, 6)
+      impl <- runif(1, -0.06, 0.06)
+
       img <- img |>
         magick::image_shear(
-          geometry = sprintf("%dx%d", sample(-4:4, 1), sample(-2:2, 1))
+          geometry = sprintf("%dx%d", shearx, sheary)
         ) |>
-        magick::image_rotate(runif(1, -6, 6)) |>
-        magick::image_implode(factor = runif(1, -0.06, 0.06))
+        magick::image_rotate(ang) |>
+        magick::image_implode(factor = impl)
+
+      layers <- lapply(
+        layers,
+        \(u) u |>
+          magick::image_shear(
+            geometry = sprintf("%dx%d", shearx, sheary)
+          ) |>
+          magick::image_rotate(ang) |>
+          magick::image_implode(factor = impl)
+      )
     }
   }
 
@@ -156,9 +203,21 @@ makecaptcha <- function(
       color = "white"
     )
 
+  layers <- lapply(
+    layers,
+    \(u) u |>
+      magick::image_background("white", flatten = TRUE) |>
+      magick::image_extent(
+        geometry = sprintf("%dx%d", width, height),
+        gravity = "center",
+        color = "white"
+      )
+  )
+
   list(
     img = img,
-    text = text
+    text = text,
+    layers = layers
   )
 }
 
@@ -257,7 +316,9 @@ addpointnoise <- function(
     label = "noise"
   )
 
-  pts$label <- "signal"
+  if (is.null(pts$label)) {
+    pts$label <- "signal"
+  }
 
   rbind(pts, noise)
 }
@@ -276,15 +337,25 @@ makepointcaptcha <- function(
     ndots = 0
   )
 
-  pts <- imgtopoints(
-    z$img,
-    cutoff = cutoff,
-    fuzzband = c(0.70, 0.86),
-    fuzzprob = fuzzprob,
-    border = 2
-  ) |>
+  ptslist <- lapply(
+    seq_along(z$layers),
+    function(j) {
+      out <- imgtopoints(
+        z$layers[[j]],
+        cutoff = cutoff,
+        fuzzband = c(0.70, 0.86),
+        fuzzprob = fuzzprob,
+        border = 2
+      )
+
+      out$label <- paste0("char", j)
+      out
+    }
+  )
+
+  pts <- do.call(rbind, ptslist) |>
     croppoints(pad = 1) |>
-    thinpoints(keepfrac = 0.99) |> #THIS IS HOW SPARSE THE CLOUD IS
+    thinpoints(keepfrac = 0.99) |>
     addpointnoise(
       nbg = nbg,
       jitter = jitter,
@@ -294,7 +365,8 @@ makepointcaptcha <- function(
 
   list(
     text = z$text,
-    pts = pts
+    pts = pts,
+    img = z$img
   )
 }
 ```
@@ -344,8 +416,37 @@ savegoodz(z)
 ```{r accesssaved}
 goodzs <- readRDS("goodzs.rds")
 names(goodzs)
-goodzs$z6
+goodzs$z16$text
+goodzs$z16$pts
 ```
+
+```{r generate_100}
+zlist <- replicate(
+  100,
+  {
+    z <- makepointcaptcha()
+    
+    oldx <- z$pts$x
+    oldy <- z$pts$y
+    z$pts$x <- -oldy
+    z$pts$y <- oldx
+    z$pts$x <- z$pts$x - min(z$pts$x)
+    z$pts$y <- z$pts$y - min(z$pts$y)
+    z$pts$x <- max(z$pts$x) - z$pts$x
+    
+    z
+  },
+  simplify = FALSE
+)
+
+names(zlist) <- paste0("z", seq_along(zlist))
+
+saveRDS(zlist, "z100.rds")
+
+length(zlist)  # should be 100
+
+```
+
 
 ```{r visualize}
 
@@ -355,17 +456,17 @@ library(ggplot2)
 goodzs <- readRDS("goodzs.rds")
 
 pts <- goodzs$z14$pts
+x <- pts[, c("x", "y")]
 
-db <- dbscan(pts[, c("x", "y")], eps = 0.2, minPts = 5)
+fit <- dbscan(x, eps = 3, minPts = 7)
 
-pts$cluster <- factor(db$cluster)
+pts$cluster <- factor(fit$cluster)
 
-ggplot(pts, aes(x, -y, color = cluster)) +
-  geom_point(size = 0.7) +
+ggplot(pts, aes(x = x, y = y, color = cluster)) +
+  geom_point(size = 0.8, alpha = 0.8) +
   coord_equal() +
-  theme_void() +
-  guides(color = "none")
-
+  scale_y_reverse() +
+  theme_minimal()
 
 ```
 
@@ -373,8 +474,8 @@ ggplot(pts, aes(x, -y, color = cluster)) +
 ```{r hdbscan}
 goodzs <- readRDS("goodzs.rds")
 
-pts <- goodzs$z8$pts
-hdb <- hdbscan(as.matrix(pts[, c("x", "y")]), minPts = 6)
+pts <- goodzs$z14$pts
+hdb <- hdbscan(as.matrix(pts[, c("x", "y")]), minPts = 11)
 pts$cluster <- factor(hdb$cluster)
 
 library(viridis)
@@ -389,9 +490,9 @@ ggplot(pts, aes(x, -y, color = cluster)) +
 
 ```{r spectral}
 library(kernlab)
-pts <- goodzs$z8$pts
+pts <- goodzs$z14$pts
 
-k <- 9
+k <- 6
 
 sp <- specc(as.matrix(pts[, c("x", "y")]), centers = k)
 pts$cluster <- factor(sp)
@@ -405,15 +506,12 @@ ggplot(pts, aes(x, -y, color = cluster)) +
 ```
 
 ```{r single}
-pts <- goodzs$z8$pts
+pts <- goodzs$z14$pts
 
-# distance matrix
 d <- dist(pts[, c("x", "y")])
 
-# single linkage hierarchical clustering
 hc <- hclust(d, method = "single")
 
-# choose number of clusters
 k <- 8
 pts$cluster <- factor(cutree(hc, k = k))
 
@@ -424,6 +522,223 @@ ggplot(pts, aes(x, -y, color = cluster)) +
   theme_void() +
   guides(color = "none")
 ```
+
+
+```{r ari-table}
+library(dbscan)
+library(kernlab)
+library(mclust)
+library(dplyr)
+
+library(dbscan)
+library(kernlab)
+library(mclust)   # for adjustedRandIndex
+
+zlist <- readRDS("z100.rds")
+
+results <- data.frame(
+  dbscan = numeric(length(zlist)),
+  hdbscan = numeric(length(zlist)),
+  spectral = numeric(length(zlist)),
+  single = numeric(length(zlist))
+)
+
+for (i in seq_along(zlist)) {
+  
+  pts <- zlist[[i]]$pts
+  
+  # remove noise points for evaluation
+  pts_eval <- pts[pts$label != "noise", ]
+  
+  x <- as.matrix(pts_eval[, c("x", "y")])
+  truth <- as.factor(pts_eval$label)
+  
+  k <- length(unique(truth))  # true number of characters
+  
+  # --- DBSCAN ---
+  db <- dbscan(x, eps = 3, minPts = 7)
+  results$dbscan[i] <- adjustedRandIndex(truth, db$cluster)
+  
+  # --- HDBSCAN ---
+  hdb <- hdbscan(x, minPts = 11)
+  results$hdbscan[i] <- adjustedRandIndex(truth, hdb$cluster)
+  
+  # --- Spectral ---
+  sp <- specc(x, centers = k)
+  results$spectral[i] <- adjustedRandIndex(truth, sp)
+  
+  # --- Hierarchical (single linkage) ---
+  d <- dist(x)
+  hc <- hclust(d, method = "single")
+  pred <- cutree(hc, k = k)
+  results$single[i] <- adjustedRandIndex(truth, pred)
+}
+
+# average ARI per method
+colMeans(results)
+
+summary_table <- data.frame(
+  Method = colnames(results),
+  Mean_ARI = colMeans(results),
+  SD_ARI = apply(results, 2, sd)
+)
+
+summary_table
+```
+
+```{r 64}
+for (i in 64:length(zlist)) {
+
+  pts <- zlist[[i]]$pts
+  pts_eval <- pts[pts$label != "noise", ]
+
+  x <- as.matrix(pts_eval[, c("x", "y")])
+  truth <- as.factor(pts_eval$label)
+
+  k <- length(unique(truth))
+
+  # DBSCAN
+  db <- dbscan(x, eps = 3, minPts = 7)
+  results$dbscan[i] <- adjustedRandIndex(truth, db$cluster)
+
+  # HDBSCAN
+  hdb <- hdbscan(x, minPts = 11)
+  results$hdbscan[i] <- adjustedRandIndex(truth, hdb$cluster)
+
+  # Spectral
+  sp <- specc(x, centers = k)
+  results$spectral[i] <- adjustedRandIndex(truth, sp)
+
+  # Hierarchical
+  d <- dist(x)
+  hc <- hclust(d, method = "single")
+  pred <- cutree(hc, k = k)
+  results$single[i] <- adjustedRandIndex(truth, pred)
+
+  cat("Finished", i, "\n")
+}
+
+```
+
+
+```{r getaritable}
+summarytable <- data.frame(
+  Method = colnames(results),
+  MeanARI = colMeans(results, na.rm = TRUE),
+  SDARI = apply(results, 2, sd, na.rm = TRUE)
+)
+
+summarytable |> arrange(desc(MeanARI))
+```
+
+
+```{r test}
+set.seed(1)
+idx <- sample(1:100, 5)
+
+for (i in idx) {
+  pts <- zlist[[i]]$pts
+  pts_eval <- pts[pts$label != "noise", ]
+
+  x <- as.matrix(pts_eval[, c("x", "y")])
+  truth <- as.factor(pts_eval$label)
+  k <- length(unique(truth))
+
+  d <- dist(x)
+  hc <- hclust(d, method = "single")
+  pred <- cutree(hc, k = k)
+
+  cat("i =", i, 
+      "ARI =", adjustedRandIndex(truth, pred), "\n")
+}
+
+```
+
+
+```{r test2}
+zlist <- readRDS("z100.rds")
+
+ressignal <- data.frame(
+  dbscan = rep(NA_real_, length(zlist)),
+  hdbscan = rep(NA_real_, length(zlist)),
+  spectral = rep(NA_real_, length(zlist)),
+  single = rep(NA_real_, length(zlist))
+)
+
+resfull <- data.frame(
+  dbscan = rep(NA_real_, length(zlist)),
+  hdbscan = rep(NA_real_, length(zlist)),
+  spectral = rep(NA_real_, length(zlist)),
+  single = rep(NA_real_, length(zlist))
+)
+
+for (i in seq_along(zlist)) {
+  pts <- zlist[[i]]$pts
+  x <- as.matrix(pts[, c("x", "y")])
+
+  keep <- pts$label != "noise"
+  truthsig <- as.factor(pts$label[keep])
+  truthall <- as.factor(pts$label)
+  k <- length(unique(truthsig))
+
+  dbfit <- tryCatch(dbscan(x, eps = 3, minPts = 7), error = \(e) NULL)
+  hdbfit <- tryCatch(hdbscan(x, minPts = 11), error = \(e) NULL)
+  spfit <- tryCatch(specc(x, centers = k), error = \(e) NULL)
+  singlefit <- tryCatch({
+    d <- dist(x)
+    hc <- hclust(d, method = "single")
+    cutree(hc, k = k)
+  }, error = \(e) NULL)
+
+  if (!is.null(dbfit)) {
+    ressignal$dbscan[i] <- adjustedRandIndex(truthsig, dbfit$cluster[keep])
+
+    preddb <- ifelse(dbfit$cluster == 0, "noise", paste0("cl", dbfit$cluster))
+    resfull$dbscan[i] <- adjustedRandIndex(truthall, as.factor(preddb))
+  }
+
+  if (!is.null(hdbfit)) {
+    ressignal$hdbscan[i] <- adjustedRandIndex(truthsig, hdbfit$cluster[keep])
+
+    predhdb <- ifelse(hdbfit$cluster == 0, "noise", paste0("cl", hdbfit$cluster))
+    resfull$hdbscan[i] <- adjustedRandIndex(truthall, as.factor(predhdb))
+  }
+
+  if (!is.null(spfit)) {
+    sps <- as.vector(spfit)
+    ressignal$spectral[i] <- adjustedRandIndex(truthsig, sps[keep])
+
+    predsp <- as.factor(paste0("cl", sps))
+    resfull$spectral[i] <- adjustedRandIndex(truthall, predsp)
+  }
+
+  if (!is.null(singlefit)) {
+    ressignal$single[i] <- adjustedRandIndex(truthsig, singlefit[keep])
+
+    predsingle <- as.factor(paste0("cl", singlefit))
+    resfull$single[i] <- adjustedRandIndex(truthall, predsingle)
+  }
+
+  cat(
+    "Finished", i,
+    "| signal db =", round(ressignal$dbscan[i], 3),
+    "hdb =", round(ressignal$hdbscan[i], 3),
+    "sp =", round(ressignal$spectral[i], 3),
+    "single =", round(ressignal$single[i], 3),
+    "| full db =", round(resfull$dbscan[i], 3),l
+    "hdb =", round(resfull$hdbscan[i], 3),
+    "sp =", round(resfull$spectral[i], 3),
+    "single =", round(resfull$single[i], 3),
+    "\n"
+  )
+}
+
+```
+
+
+
+
+
 
 ```{r gennoiseless}
 makepointcaptcha_noiseless <- function(
