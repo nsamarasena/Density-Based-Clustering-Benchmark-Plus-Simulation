@@ -11,7 +11,6 @@ set.seed(865)
 ```
 
 # Data Simulation with noise
-
 ## commented out code chunks are the datasets which will not have noise added
 
 # Convex data with consistent cluster size
