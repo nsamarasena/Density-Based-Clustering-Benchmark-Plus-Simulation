@@ -96,8 +96,7 @@ trueX4 <- c(rep(c('purple','yellow'),each=500),rep('grey',50))
 scatterplot3d(X4,pch=19,color=trueX4)
 ```
 ```{r}
-out <- run_methods(X4, trueX4, k = 2, 
-    hdb_minPts = 8)
+out <- run_methods(X4, trueX4, k = 2)
 out$results
 ```
 
@@ -108,9 +107,9 @@ out$results
 
 # 50 observations of noise data
 
-noise3_x <- runif(50,-5,15)
-noise3_y <- runif(50,-10,20)
-noise3_z <- runif(50,-5,15)
+noise3_x <- runif(30,-5,15)
+noise3_y <- runif(30,-10,20)
+noise3_z <- runif(30,-5,15)
 
 noise3 <- cbind(noise3_x,noise3_y,noise3_z)
 
@@ -120,13 +119,12 @@ x1i2_2 <- rmvnorm(150,c(8,8,8),sig1_2) # cluster 2, n=150
 
 Xi2 <- rbind(x1i2_1,x1i2_2,noise3)
            
-trueXi2 <- c(rep(1,60),rep(2,150),rep('grey',50)) # generate labels for data
+trueXi2 <- c(rep(1,60),rep(2,150),rep('grey',30)) # generate labels for data
 
 scatterplot3d(Xi2,color=trueXi2,pch=19)
 ```
 ```{r}
-out <- run_methods(Xi2, trueXi2, k = 2,
-                   db_minPts = 3)
+out <- run_methods(Xi2, trueXi2, k = 2)
 out$results
 ```
 
@@ -135,9 +133,9 @@ out$results
 
 # 50 observations of noise data
 
-noise4_x <- runif(50,-15,0)
-noise4_y <- runif(50,-2,16)
-noise4_z <- runif(50,0,15)
+noise4_x <- runif(30,-15,0)
+noise4_y <- runif(30,-2,16)
+noise4_z <- runif(30,0,15)
 
 noise4 <- cbind(noise4_x,noise4_y,noise4_z)
 
@@ -147,13 +145,12 @@ x2i_2 <- rmvnorm(60,c(-10,11,11),sig2_2) # cluster 2, n=60
 
 X2i <- rbind(x2i_1,x2i_2,noise4)
 
-trueX2i <- c(rep(3,150),rep(4,60),rep('grey',50))
+trueX2i <- c(rep(3,150),rep(4,60),rep('grey',30))
 
 scatterplot3d(X2i,color=trueX2i,pch=19)
 ```
 ```{r}
-out <- run_methods(X2i, trueX2i, k = 2,
-                   hdb_minPts = 10)
+out <- run_methods(X2i, trueX2i, k = 2)
 out$results
 ```
 
@@ -186,9 +183,7 @@ trueX4i <- c(rep('purple',400),rep('yellow',150),rep('grey',50))
 scatterplot3d(X4i,pch=19,color=trueX4i)
 ```
 ```{r}
-out <- run_methods(X4i, trueX4i, k = 2,
-                   db_eps = 2,
-                   hdb_minPts = 8)
+out <- run_methods(X4i, trueX4i, k = 2)
 out$results
 ```
 

@@ -1,7 +1,7 @@
 #Estimating min points threshold for DB & HDB
 estimate_minPts <- function(X, minPts = NULL) {
   if (!is.null(minPts)) return(minPts)
-  2 * ncol(X)
+  2 * (ncol(X)+1)
 }
 
 #Estimating epsilon for DB
@@ -12,16 +12,18 @@ estimate_eps <- function(X, minPts, prob = 0.9) {
 
 #Returns clustered graphs & ARI scores
 run_methods <- function(
-    X,
+    data,
     truth,
     k,
     db_eps = NULL,
     db_minPts = NULL,
     hdb_minPts = NULL,
-    eps_quantile = 0.9
+    eps_quantile = 0.9,
+    scale_data=TRUE
 ) {
+  X <- if (scale_data) scale(data) else data
   
-  db_minPts <- estimate_minPts(X, db_minPts)
+  db_minPts <- estimate_minPts(X, 2 * ncol(X))
   if (is.null(db_eps)) {
     db_eps <- estimate_eps(X, minPts = db_minPts, prob = eps_quantile)
   }
