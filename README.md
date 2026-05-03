@@ -1,1 +1,3 @@
 # Density Based Clustering Benchmark Plus Simulation
+
+We perform a benchmarking study of Density-Based Spatial Clustering of Applications with Noise (DBSCAN) and Hierarchical Density-Based Spatial Clustering of Applications with Noise (HDBSCAN) against 2 classic clustering methods that have been covered in MATH 252: Spectral Clustering and Agglomerative Clustering with Single Linkage. The methods are performed on simulated 3-dimensional continuous data. To better understand usability in real-life applications, we will cluster using the aforementioned methods on generated “Completely Automated Public Turing test to tell Computers and Humans Apart” (CAPTCHA) data. Clustering methods are assessed with comparative indices, accuracy, and computational cost.
