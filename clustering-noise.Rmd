@@ -3,6 +3,7 @@ title: "clustering-noise"
 output: pdf_document
 ---
 ```{r}
+library(MixGHD)
 library(mvtnorm)
 library(scatterplot3d)
 library(cluster)
