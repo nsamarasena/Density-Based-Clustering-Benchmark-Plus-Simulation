@@ -71,7 +71,7 @@ X4_2 <- cbind(x4_4,x4_5,x4_6)
 
 X4 <- rbind(X4_1,X4_2,noise2)
 
-trueX4 <- c(rep(c('purple','yellow'),each=500),rep('grey',50))
+trueX4 <- c(rep(5:6,each=500),rep('grey',50))
 
 
 #-------------------------
@@ -86,6 +86,8 @@ noise3_z <- runif(50,-5,15)
 noise3 <- cbind(noise3_x,noise3_y,noise3_z)
 
 # generate two clusters that are convex, non-overlapping (sizes flipped)
+sig1_1 <- diag(3)
+sig1_2 <- diag(6.25,3)
 x1i2_1 <- rmvnorm(60,c(0,0,0),sig1_1) # cluster 1, n=60
 x1i2_2 <- rmvnorm(150,c(8,8,8),sig1_2) # cluster 2, n=150
 
@@ -106,6 +108,8 @@ noise4_z <- runif(50,0,15)
 noise4 <- cbind(noise4_x,noise4_y,noise4_z)
 
 # generate two 3d clusters that are convex, overlapping
+sig2_1 <- diag(6,3)
+sig2_2 <- diag(0.75,3)
 x2i_1 <- rmvnorm(150,c(-8,8,8),sig2_1) # cluster 1, n=150
 x2i_2 <- rmvnorm(60,c(-10,11,11),sig2_2) # cluster 2, n=60
 
